@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon forum</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style-connection.css">
 </head>
 <body>
     <header>
@@ -17,34 +17,49 @@
     </header>
     <img id="img-navbar" src="public/nav_img.jpg" alt="Image de fond Navbar">
     <main>
-        <div id="add-post-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Ajouter un post</h2>
+        <div class="container-authentification">
+            <div class="login-card">
+                <h2>Sign In</h2>
                 <form>
                     <div class="input-group">
-                        <label for="post-type">Type de post:</label>
-                        <select id="post-type" name="post-type">
-                            <option value="post">Post</option>
-                            <option value="theme">Thème</option>
-                        </select>
+                        <label for="username">Pseudo</label>
+                        <input type="text" id="username" name="username" required>
                     </div>
                     <div class="input-group">
-                        <label for="post-title">Titre:</label>
-                        <input type="text" id="post-title" name="post-title" required>
+                        <label for="email">Adresse email</label>
+                        <input type="email" id="email" name="email" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Veuillez entrer une adresse email valide.">
                     </div>
                     <div class="input-group">
-                        <label for="post-message">Message:</label>
-                        <textarea id="post-message" name="post-message" required></textarea>
+                        <label for="password">Mot de passe</label>
+                        <input type="password" id="password" name="password" required minlength="8" maxlength="20" pattern="(?=.*[0-9])(?=.*[A-Z])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}" title="Le mot de passe doit contenir au moins 8 caractères, dont une majuscule, un chiffre et un caractère spécial.">
                     </div>
                     <div class="input-group">
-                        <label for="post-attachment">Pièce jointe:</label>
-                        <input type="file" id="post-attachment" name="post-attachment">
+                        <label for="confirm-password">Confirmation du mot de passe</label>
+                        <input type="password" id="confirm-password" name="confirm-password" required>
                     </div>
-                    <button type="submit">Ajouter</button>
+                    <button type="submit">S'inscrire</button>
                 </form>
+                <div class="social-login">
+                    <p>Se connecter avec :</p>
+                    <div class="social-icons">
+                        <label for="google-login">
+                            <img src="public/google_icon.png" alt="Google">
+                            <br>Google
+                        </label>
+                        <label for="github-login">
+                            <img src="public/github_icon.png" alt="GitHub">
+                            <br>GitHub
+                        </label>
+                    </div>
+                </div>
+                <div class="signup-link">
+                <p>Vous avez déjà un compte ? <a href="login.html">Se connecter</a></p>
+                </div>
             </div>
         </div>
+        <button id="add-button"> 
+            <img src="public/add.png" alt="Plus Icon">
+        </button>
     </main>
     <div class="footer">
         <div class="footer-section">

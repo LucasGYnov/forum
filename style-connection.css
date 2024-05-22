@@ -32,80 +32,87 @@ body{
     background-color: var(--PrimarylightBGColor);
 }
 
-#navbar {
-    position: relative;
-    overflow: hidden;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    background-image: url('public/nav_img.jpg');
-    background-size: cover;
+a{
+    text-decoration: none;
 }
 
-#content {
+#navbar{
     position: relative;
     top: 0;
     left: 0;
+    background-color : rgba(235, 235, 235, 0);
     height: 6vh;
-    padding: 1rem 0;
+    padding: 1rem 0 1rem 0;
     gap: 1rem;
     display: flex;
     align-items: center;
 }
 
-#navbar::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1)); /* Dégradé de haut en bas */
-    z-index: 0;
-}
-
-#logo {
+#logo{
     width: 8vh;
     margin-right: 20px;
     border-radius: 50%;
     margin-left: 8.33vw; /*100/12*/
 }
 
-#navbar h1 {
+#navbar h1{
     font-size: 2rem;
     font-weight: 700;
     text-transform: capitalize;
+    /* color: var(--darkText-color); */
     color: var(--darkText-color);
-    /* color: var(--lightText-color); */
 }
 
-#search-section {
+#search-section{
     display: flex;
     align-items: center;
-    margin-top: 10px;
+    align-content: center;
+    justify-content: center;
+    margin: 2rem;
 }
 
 #searchbar {
-    width: 200px; /* Ajustez la largeur de la barre de recherche selon vos besoins */
-    height: 30px; /* Ajustez la hauteur de la barre de recherche selon vos besoins */
-    border-radius: 15px;
+    width: 35vw;
+    height: 2.88rem;
+    border-radius: 10px 0 0 10px;
     border: none;
-    padding: 5px 10px;
+    background-color: var(--PrimarylightBGColorAlpha);
+    backdrop-filter: blur(5px);
+    padding-left: 1rem;
+    font-size: 1.2rem;
+    color: var(--darkTextDescription-color);
+  }
+
+  #searchbar::placeholder {
+    color: var(--placeholder-color);
+  }
+
+
+#searchbar:focus {
+    outline: none;
 }
 
-#searchbar::placeholder {
-    color: rgba(255, 255, 255, 0.7); /* Opacité du placeholder */
+#search-button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 5%;
+    height: 3rem;
+    border :none;
+    background-color: var(--PrimarylightBGColorAlpha);
+    backdrop-filter: blur(5px);
 }
 
-#search-button {
-    width: 30px; /* Ajustez la taille du bouton de recherche selon vos besoins */
-    height: 30px; /* Ajustez la taille du bouton de recherche selon vos besoins */
-    border: none;
-    background-color: transparent;
+#search-button img{
+    width: 45%;
 }
 
-#search-button img {
-    width: 100%; /* Ajustez la taille de l'icône de recherche selon vos besoins */
+#img-navbar{
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100vw;
+    z-index: -1;
 }
 
 #filters-button{
@@ -142,104 +149,6 @@ body{
 
 .container {
 	padding: 2rem;
-}
-
-.slider-wrapper {
-	position: relative;
-	max-width: 60rem;
-	margin: 0 auto;
-}
-
-.slider {
-	display: flex;
-	aspect-ratio: 16 / 9;
-	overflow-x: auto;
-	scroll-snap-type: x mandatory;
-	scroll-behavior: smooth;
-	box-shadow: 0 1.5rem 3rem -0.75rem hsla(0, 0%, 0%, 0.25);
-	border-radius: 0.5rem;
-	-ms-overflow-style: none;
-	scrollbar-width: none;
-}
-
-.slider::-webkit-scrollbar {
-	display: none;
-}
-
-.card-slide{
-    display: flex;
-    background-color: var(--PrimarylightBGColorAlpha);
-    width: 45vw;
-    height: 35vh;
-    border-radius: 0.5rem;
-    backdrop-filter: blur(2px);
-    margin: auto;
-}
-
-.slider #slide-1 h2, #slide-2 h2, #slide-3 h2 {
-    display: flex;
-	color: var(--lightText-color);
-    justify-content: center;
-    font-weight: 800;
-    font-size: 2rem;
-    color: var(--lightText-color);
-    text-shadow: 2px 2px 4px rgba(0, 0, 0,0.25);
-}
-
-.slider #slide-1 {
-    flex: 1 0 100%;
-    scroll-snap-align: start;
-    object-fit: fill;
-    background-image: url("public/imgS1.png");
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
-}
-
-.slider #slide-2 {
-    flex: 1 0 100%;
-    scroll-snap-align: start;
-    object-fit: cover;
-    background-repeat: no-repeat;
-    background-image: url("public/imgS2.png");
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
-}
-
-.slider #slide-3 {
-    flex: 1 0 100%;
-    scroll-snap-align: start;
-    object-fit: cover;
-    background-repeat: no-repeat;
-    background-image: url("public/imgS3.png");
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
-}
-
-
-.slider-nav {
-	display: flex;
-	column-gap: 2rem;
-	position: absolute;
-	bottom: 1rem;
-	left: 50%;
-	transform: translateX(-50%);
-	z-index: 1;
-}
-
-.slider-nav a {
-	width: 10rem;
-	height: .5rem;
-	border-radius: 20px;
-	background-color: var(--PrimarylightBGColorAlpha);
-	opacity: 0.75;
-	transition: opacity ease 250ms;
-}
-
-.slider-nav a:hover {
-	opacity: 1;
 }
 
 .footer {
@@ -291,7 +200,7 @@ body{
     text-align: center;
     margin-top: 2rem;
     font-weight: bold;
-    font-size: 1.5rem;
+    font-size: 2rem;
 }
 
 .contact-info + form {
@@ -342,8 +251,138 @@ body{
     background-color: #0056b3;
 }
 
+.container-authentification {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.login-card {
+    background: var(--PrimarylightBGColorAlpha);
+    padding: .5rem 2rem .5rem 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 40%;
+    text-align: center;
+    margin: 4rem auto 5rem auto;
+}
+
+.login-card h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #555;
+}
+
+.input-group input {
+    width: 90%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+}
+
+.social-login {
+    background: var(--PrimarylightBGColorAlpha);
+    padding: .5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 75%;
+    text-align: center;
+    margin: 2rem auto;
+}
+
+.social-login p {
+    margin-bottom: 1rem;
+    color: #555;
+    font-size: 1rem;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap :8rem;
+    margin: 2rem;
+}
+
+.social-icons a {
+    display: inline-block;
+    margin: 0 0.5rem;
+}
+
+.social-icons img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.social-icons img:hover {
+    transform: scale(1.1);
+}
 
 
+button {
+    width: 50%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 0.25rem;
+    background: #ff7e5f;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
 
+button:hover {
+    background: #feb47b;
+}
 
+.forgot-password {
+    position: relative;
+    text-align: left;
+    margin-bottom: 1.5rem;
+    margin-top: -1rem;
+}
 
+.forgot-password a {
+    color: #555;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.signup-link {
+    margin-top: 1.5rem;
+}
+
+.signup-link p {
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.signup-link a {
+    color: #ff7e5f;
+    text-decoration: none;
+}
+
+.signup-link a:hover {
+    text-decoration: underline;
+}
