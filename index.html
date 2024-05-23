@@ -6,6 +6,8 @@
     <title>Mon forum</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 </head>
 <body>
     <header>
@@ -25,9 +27,9 @@
                 <a id="closeBtn" href="#" class="close">×</a>
                 <ul>
                     <li><a href="/">Accueil</a></li>
-                    <li><a href="profile.html">Mon compte</a></li>
-                    <li><a href="#">A propos</a></li>
-                    <li><a href="#">Contact</a></li>
+                    <li><a href="login.html">Mon compte</a></li>
+                    <li><a href="about.html">A propos</a></li>
+                    <li><a href="contact.html">Contact</a></li>
                 </ul>
             </div>
         </div>
@@ -40,8 +42,67 @@
             <button type="submit" id="search-button"> 
                 <img src="public/search.png" alt="Search Icon">
             </button>
-            <button type="" id="filters-button">Filtres...</button>
+            <button type="button" id="filters-button">Filtres...</button>
         </div>
+
+        <div id="filters-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Filtrer les résultats</h2>
+                <form id="filters-form">
+                    <div class="filters-container">
+                        <!-- Première colonne -->
+                        <div class="filters-column">
+                            <h3>Ordre d'apparition</h3>
+                            <div class="input-group">
+                                <label for="filter-order">Ordre:</label>
+                                <select id="filter-order" name="filter-order">
+                                    <option value="recent">Le plus récent</option>
+                                    <option value="oldest">Le moins récent</option>
+                                    <option value="most-likes">Le plus de likes</option>
+                                    <option value="least-likes">Le moins de likes</option>
+                                    <option value="most-interactions">Le plus d'interactions</option>
+                                    <option value="least-interactions">Le moins d'interactions</option>
+                                </select>
+                            </div>
+
+                            <h3>Type de recherche</h3>
+                            <div class="input-group">
+                                <label for="filter-type">Chercher:</label>
+                                <select id="filter-type" name="filter-type">
+                                    <option value="post">Tout</option>
+                                    <option value="post">Post</option>
+                                    <option value="sujet">Sujet</option>
+                                    <option value="utilisateur">Utilisateur</option>
+                                </select>
+                            </div>
+                        </div>
+        
+                        <!-- Deuxième colonne -->
+                        <div class="filters-column">
+                            <h3>Sujet</h3>
+                            <div class="input-group">
+                                <label for="filter-subject">Sujet:</label>
+                                <select id="filter-subject" name="filter-subject">
+                                    <option value="">Sélectionner un sujet</option>
+                                    <option value="sujet1">Sujet 1</option>
+                                    <option value="sujet2">Sujet 2</option>
+                                    <!-- Ajouter d'autres sujets ici -->
+                                </select>
+                            </div>
+        
+                            <h3>Autres critères</h3>
+                            <div class="input-group">
+                                <label for="filter-other">Autre:</label>
+                                <input type="text" id="filter-other" name="filter-other" placeholder="Autres critères...">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit">Appliquer les filtres</button>
+                </form>
+            </div>
+        </div>
+        
         <button id="add-button"> 
             <img src="public/add.png" alt="Plus Icon">
         </button>
@@ -74,6 +135,35 @@
             </div>
         </section>
     </main>
+    <div id="add-post-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title">Ajouter un post</h2>
+            <form>
+                <div class="input-group">
+                    <label for="post-title">Titre:</label>
+                    <input type="text" id="post-title" name="post-title" required>
+                </div>
+                <div class="input-group">
+                    <label for="post-subject">Nom du thème:</label>
+                    <select id="post-subject" name="post-subject">
+                        <option value="">Sélectionner un sujet</option>
+                        <option value="sujet1">Sujet 1</option>
+                        <option value="sujet2">Sujet 2</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="post-message">Message:</label>
+                    <div id="editor-container"></div>
+                </div>
+                <div class="input-group">
+                    <label for="post-attachment">Pièce jointe:</label>
+                    <input type="file" id="post-attachment" name="post-attachment">
+                </div>
+                <button type="submit">Ajouter</button>
+            </form>
+        </div>
+    </div>
     <div class="footer">
         <div class="footer-section">
             <h3>Compte</h3>
@@ -111,6 +201,22 @@
             <button type="submit">Envoyer</button>
         </form>
     </div>
+    <script>
+        var quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'font': [] }, { 'size': [] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                    [{ 'align': [] }],
+                    ['clean']
+                ]
+            }
+        });
+    </script>
 
     <script src="script.js"></script>
 </body>

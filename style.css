@@ -70,6 +70,14 @@ a{
     color: var(--darkText-color);
 }
 
+#img-navbar{
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100vw;
+    z-index: -1;
+}
+
 .sidenav {
     display: none;
     height: 30vh;
@@ -171,13 +179,7 @@ a{
     width: 45%;
 }
 
-#img-navbar{
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 100vw;
-    z-index: -1;
-}
+
 
 #filters-button{
     width: 8rem;
@@ -231,6 +233,7 @@ a{
 	border-radius: 0.5rem;
 	-ms-overflow-style: none;
 	scrollbar-width: none;
+    box-shadow: 2rem 0px 2rem 0px rgba(255, 255, 255, 0.75);
 }
 
 .slider::-webkit-scrollbar {
@@ -414,6 +417,7 @@ a{
 }
 
 .modal {
+    display: none;
     position: fixed;
     z-index: 1;
     left: 0;
@@ -431,7 +435,25 @@ a{
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
+    max-width: 800px;
 }
+
+#filters-modal .modal-content {
+    background-color: #fefefe;
+    border-radius: 20px;
+    margin: 23vh auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 800px;
+}
+
+.modal.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
 
 .close {
     color: #aaa;
@@ -460,7 +482,7 @@ a{
 }
 
 .input-group input {
-    width: calc(50% - 1.5rem);
+    width: calc(90% - 1.5rem);
     max-width: 90%;
     padding: 0.75rem;
     border: 1px solid #ddd;
@@ -468,7 +490,7 @@ a{
 }
 
 .input-group select {
-    width: 50%;
+    width: 90%;
     max-width: 90%;
     padding: 0.75rem;
     border: 1px solid #ddd;
@@ -486,7 +508,7 @@ a{
     resize: none; /* Prevent resizing */
 }
 
-button {
+.input-group button {
     padding: 0.75rem;
     border: none;
     border-radius: 0.25rem;
@@ -497,7 +519,7 @@ button {
     transition: background 0.3s ease;
 }
 
-button:hover {
+.input-group button:hover {
     background: #feb47b;
 }
 
@@ -508,6 +530,20 @@ button:hover {
     border-radius: 0.25rem;
     padding: 0.75rem;
 }
+
+.filters-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.filters-column {
+    width: 45%;
+}
+
+.filters-column h3 {
+    margin-top: 0;
+}
+
 
 
 
