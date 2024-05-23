@@ -35,16 +35,41 @@ type User struct {
 }
 
 func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+
 	session, err := store.Get(r, "userSession")
 	if err != nil {
 		log.Printf("Erreur lors de la récupération de la session: %v", err)
 		http.Error(w, "Erreur de session", http.StatusInternalServerError)
 		return
 	}
-
+	if r.URL.Path == "/" {
+		if r.Method == "GET" {
+			tmpl, err := template.ParseFiles("index.html")
+			if err != nil {
+				http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+				return
+			}
+			tmpl.Execute(w, u)
+			return
+		}
+	}
+	if r.URL.Path == "/register" {
+		if r.Method == "GET" {
+			tmpl, err := template.ParseFiles("signin.html")
+			if err != nil {
+				http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+				return
+			}
+			tmpl.Execute(w, nil)
+			return
+		} else if r.Method == "POST" {
+			u.processRegistration(w, r)
+			return
+		}
+	}
 	if r.URL.Path == "/login" {
 		if r.Method == "GET" {
-			tmpl, err := template.ParseFiles("logintest.html")
+			tmpl, err := template.ParseFiles("login.html")
 			if err != nil {
 				http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
 				return
@@ -89,7 +114,7 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if r.Method == "POST" {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 
 		}
@@ -98,7 +123,7 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
-func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+/* func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.db, h.dbInitErr = sql.Open("sqlite3", "./forumv3.db")
 	if h.dbInitErr != nil {
 		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
@@ -107,7 +132,7 @@ func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path == "/" {
 		if r.Method == "GET" {
-			tmpl, err := template.ParseFiles("registertest.html")
+			tmpl, err := template.ParseFiles("register.html")
 			if err != nil {
 				http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
 				return
@@ -120,7 +145,7 @@ func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	http.NotFound(w, r)
-}
+} */
 
 func (u *User) processLogin(w http.ResponseWriter, r *http.Request) {
 	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
@@ -172,7 +197,13 @@ func (u *User) processLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/profile", http.StatusSeeOther)
 }
 
-func (h *RegisterHandler) processRegistration(w http.ResponseWriter, r *http.Request) {
+func (u *User) processRegistration(w http.ResponseWriter, r *http.Request) {
+	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+	if dbInitErr != nil {
+		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		return
+	}
+
 	r.ParseMultipartForm(10 << 20) // 10 MB max file size
 
 	username := r.FormValue("username")
@@ -195,7 +226,7 @@ func (h *RegisterHandler) processRegistration(w http.ResponseWriter, r *http.Req
 	fileBytes := buf.Bytes()
 
 	// Insérer l'utilisateur dans la base de données
-	stmt, err := h.db.Prepare("INSERT INTO users(username, email, password, profile_picture) VALUES(?, ?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO users(username, email, password, profile_picture) VALUES(?, ?, ?, ?)")
 	if err != nil {
 		http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
 		return
@@ -258,7 +289,11 @@ func (u *User) processLogout(w http.ResponseWriter, r *http.Request) {
 
 }
 func main() {
-	http.Handle("/", new(RegisterHandler))
+	fs := http.FileServer(http.Dir("public"))
+	http.Handle("/public/", http.StripPrefix("/public/", fs))
+
+	http.Handle("/", new(User))
+	http.Handle("/register", new(User))
 	http.Handle("/profile", new(User))
 	http.Handle("/login", new(User))
 	http.Handle("/logout", new(User))

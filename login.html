@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon forum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="public/style-connection.css">
+</head>
+<body>
+    <header>
+        <div id="navbar">
+            <a href="/"><img id="logo" src="/public/logoTemp.png" alt="logo du site"  href="/"></a>
+            <a href="/"><h1>BakaLand</h1></a>
+            <!-- BURGER MENU -->
+        </div>
+    </header>
+    <img id="img-navbar" src="/public/nav_img.jpg" alt="Image de fond Navbar">
+    <main>
+        <div class="container-authentification">
+            <div class="login-card">
+                <h2>Login</h2>
+                <form action="http://localhost:5500/login" method="post" enctype="multipart/form-data">    
+                    <div class="input-group">
+                        <label for="emaild">Email ou pseudo</label>
+                        <input type="emaild" id="emaild" name="emaild" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Veuillez entrer une adresse email valide.">
+                    </div>
+                    <div class="input-group">
+                        <label for="passwordd">Mot de passe</label>
+                        <input type="passwordd" id="passwordd" name="passwordd" required maxlength="20" title="Le mot de passe doit contenir au moins 8 caractères, dont une majuscule, un chiffre et un caractère spécial.">
+                    </div>
+                    <div class="forgot-password">
+                        <a href="#">Mot de passe oublié ?</a>
+                    </div>
+                    <button type="submit">Se connecter</button>
+                </form>
+                <div class="signup-link">
+                    <p>Vous n'avez pas de compte ? <a href="signin.html">S'inscrire</a></p>
+                </div>
+            </div>
+        </div>
+        <button id="add-button"> 
+            <img src="/public/add.png" alt="Plus Icon">
+        </button>
+    </main>
+    <div class="footer">
+        <div class="footer-section">
+            <h3>Compte</h3>
+            <ul>
+                <li><a href="#">S'inscrire / Se connecter</a></li>
+                <li><a href="#">Accéder à mon profil</a></li>
+                <li><a href="#">Modifier le mot de passe</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h3>Administration</h3>
+            <ul>
+                <li><a href="#">Signaler un post, topic, compte</a></li>
+                <li><a href="#">Demande de promotion</a></li>
+            </ul>
+        </div>
+        <div class="footer-section">
+            <h3>About</h3>
+            <ul>
+                <li><a href="#">A propos</a></li>
+                <li><a href="#">Crédits</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="contact">
+        <p class="contact-info">Nous contacter</p>
+        <form action="#">
+            <label for="email">Email*</label>
+            <input type="email" id="email" name="email" minlength="7" maxlength="75" placeholder="example@mail.com" required>
+            <label for="subject">Votre objet</label>
+            <input type="text" id="subject" name="subject" maxlength="50" placeholder="Objet">
+            <label for="message">Message*</label>
+            <textarea id="message" name="message" minlength="2" maxlength="250" placeholder="Votre message" required></textarea>
+            <p>*entrer obligatoire</p>
+            <button type="submit">Envoyer</button>
+        </form>
+    </div>
+</body>
+</html>
