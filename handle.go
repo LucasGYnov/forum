@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -13,9 +15,11 @@ import (
 
 	"github.com/gorilla/sessions"
 	_ "github.com/mattn/go-sqlite3"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
-// Clé de chiffrement pour les cookies de session
+// Clé de chiffrement pour les cookies de sessio
 var store = sessions.NewCookieStore([]byte("keySession"))
 
 // Configuration de la durée d'expiration du cookie (par exemple, 40 secondes)
@@ -34,6 +38,50 @@ type User struct {
 	Base64Image string
 }
 
+type App struct {
+	config *oauth2.Config
+}
+
+type Goauth struct {
+	Id            string `json:"id"`
+	Email         string `json:"email"`
+	VerifiedEmail bool   `json:"verified_email"`
+	Name          string `json:"name"`
+	GivenName     string `json:"given_name"`
+	FamilyName    string `json:"family_name"`
+	Picture       string `json:"picture"`
+	Locale        string `json:"locale"`
+}
+
+func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/login/oauth" {
+		if r.Method == "GET" {
+			url := a.config.AuthCodeURL("state", oauth2.AccessTypeOffline)
+			http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+		}
+	}
+	if r.URL.Path == "/callback" {
+		if r.Method == "GET" {
+			code := r.URL.Query().Get("code")
+
+			t, err := a.config.Exchange(context.Background(), code)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			client := a.config.Client(context.Background(), t)
+			resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+
+			var jsonResp Goauth
+
+			if err = json.NewDecoder(resp.Body).Decode(&jsonResp); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+
+		}
+	}
+}
 func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	session, err := store.Get(r, "userSession")
@@ -289,6 +337,19 @@ func (u *User) processLogout(w http.ResponseWriter, r *http.Request) {
 
 }
 func main() {
+	clientId := "205949073068-pgfqbsm6h9bahpgaq505o8k7a7iidhcr.apps.googleusercontent.com"
+	clientSecret := "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"
+
+	conf := &oauth2.Config{
+		ClientID:     clientId,
+		ClientSecret: clientSecret,
+		RedirectURL:  "http://localhost:5500/callback",
+		Scopes:       []string{"email", "profile"},
+		Endpoint:     google.Endpoint,
+	}
+
+	app := App{config: conf}
+
 	fs := http.FileServer(http.Dir("public"))
 	http.Handle("/public/", http.StripPrefix("/public/", fs))
 
@@ -296,6 +357,8 @@ func main() {
 	http.Handle("/register", new(User))
 	http.Handle("/profile", new(User))
 	http.Handle("/login", new(User))
+	http.Handle("/login/oauth", &app)
+	http.Handle("/callback", &app)
 	http.Handle("/logout", new(User))
 
 	log.Fatal(http.ListenAndServe(":5500", nil))
