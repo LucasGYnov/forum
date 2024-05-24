@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon forum</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style-connection.css">
+    <link rel="stylesheet" href="public/style-connection.css">
 </head>
 <body>
     <header>
@@ -37,7 +37,7 @@
         <div class="container-authentification">
             <div class="login-card">
                 <h2>Sign In</h2>
-                <form>
+                <form action="http://localhost:5500/" method="post" enctype="multipart/form-data">
                     <div class="input-group">
                         <label for="username">Pseudo</label>
                         <input type="text" id="username" name="username" required>
@@ -53,6 +53,10 @@
                     <div class="input-group">
                         <label for="confirm-password">Confirmation du mot de passe</label>
                         <input type="password" id="confirm-password" name="confirm-password" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="profile_picture">Photo de profil :</label>
+                        <input type="file" id="profile_picture" name="profile_picture" accept="image/*" required>
                     </div>
                     <button type="submit">S'inscrire</button>
                 </form>
