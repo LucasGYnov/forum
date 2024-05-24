@@ -205,8 +205,8 @@ func (u *User) processLogin(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseMultipartForm(10 << 20) // 10 MB max file size
 
-	email := r.FormValue("emaild")
-	password := r.FormValue("passwordd")
+	email := r.FormValue("email")
+	password := r.FormValue("password")
 	err := db.QueryRow("SELECT user_id, username, email FROM users WHERE email=? AND password=?", email, password).Scan(&u.ID, &u.Username, &u.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
