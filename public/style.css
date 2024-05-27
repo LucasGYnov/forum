@@ -644,7 +644,6 @@ body {
     margin: 0 auto;
     overflow: hidden;
     border-radius: 10px;
-    /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); */
     background-color: rgba(255, 255, 255, 0.25);
 }
 
@@ -654,6 +653,7 @@ body {
 }
 
 .card-topic {
+    position: relative;
     display: flex;
     flex-direction: row;
     background: #fff;
