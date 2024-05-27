@@ -101,12 +101,31 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			tmpl, err := template.ParseFiles("index.html")
 			if err != nil {
+				log.Printf("Erreur lors du parsing du template index.html: %v", err)
 				http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
 				return
 			}
 			tmpl.Execute(w, u)
 			return
 		}
+		if r.Method == "POST" {
+
+			err := r.ParseMultipartForm(20 << 20) // 20 MB max file size
+			if err != nil {
+				log.Printf("Erreur lors du parsing du formulaire: %v", err)
+				http.Error(w, "Erreur lors du parsing du formulaire", http.StatusInternalServerError)
+				return
+			}
+
+			message := r.Form.Get("editor-container") // Utilisez .Get() pour récupérer une seule valeur
+			log.Printf("Message: %s", message)
+
+			// Utilisez le message comme vous le souhaitez ici...
+
+			http.Redirect(w, r, "http://localhost:5500/", http.StatusSeeOther)
+			return
+		}
+
 	}
 	if r.URL.Path == "/signin" {
 		if r.Method == "GET" {
