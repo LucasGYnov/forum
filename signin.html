@@ -10,9 +10,26 @@
 <body>
     <header>
         <div id="navbar">
-            <a href="/"><img id="logo" src="public/logoTemp.png" alt="logo du site"  href="/"></a>
-            <a href="/"><h1>BakaLand</h1></a>
-            <!-- BURGER MENU -->
+            <div id="left-part">
+                <a href="/"><img id="logo" src="public/logoTemp.png" alt="logo du site"></a>
+                <a href="/"><h1>BakaLand</h1></a>
+            </div>
+            <div id="openBtn">
+                <div class="burger-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <div id="mySidenav" class="sidenav">
+                <a id="closeBtn" href="#" class="close">×</a>
+                <ul>
+                    <li><a href="/">Accueil</a></li>
+                    <li><a href="login.html">Mon compte</a></li>
+                    <li><a href="about.html">A propos</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
         </div>
     </header>
     <img id="img-navbar" src="public/nav_img.jpg" alt="Image de fond Navbar">
@@ -21,7 +38,6 @@
             <div class="login-card">
                 <h2>Sign In</h2>
                 <form action="http://localhost:5500/signin" method="post" enctype="multipart/form-data">
-
                     <div class="input-group">
                         <label for="username">Pseudo</label>
                         <input type="text" id="username" name="username" required>
@@ -105,5 +121,6 @@
             <button type="submit">Envoyer</button>
         </form>
     </div>
+    <script src="public/script.js"></script>
 </body>
 </html>
