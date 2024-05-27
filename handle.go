@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -53,6 +54,8 @@ type Goauth struct {
 	Locale        string `json:"locale"`
 }
 
+var jsonResp Goauth
+
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/login/oauth" {
 		if r.Method == "GET" {
@@ -71,13 +74,17 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			client := a.config.Client(context.Background(), t)
-			resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
-
-			var jsonResp Goauth
+			resp, _ := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 
 			if err = json.NewDecoder(resp.Body).Decode(&jsonResp); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
+			fmt.Printf("ID: %s\n", jsonResp.Id)
+			fmt.Printf("Email: %s\n", jsonResp.Email)
+			fmt.Printf("Verified Email: %t\n", jsonResp.VerifiedEmail)
+			fmt.Printf("Picture: %s\n", jsonResp.Picture)
+			u := new(User)
+			u.processLoginGoogle(w, r, jsonResp)
 
 		}
 	}
@@ -195,6 +202,55 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 } */
 
+func (u *User) processLoginGoogle(w http.ResponseWriter, r *http.Request, googleInfo Goauth) {
+	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+	if dbInitErr != nil {
+		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	err := db.QueryRow("SELECT user_id, username, email FROM users WHERE email=? AND auth_provider = 'google'", googleInfo.Email).Scan(&u.ID, &u.Username, &u.Email)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			/* http.Error(w, "Aucun utilisateur trouvé avec cet ID", http.StatusNotFound)
+			return */
+
+			u.processRegistrationGoogle(w, r, googleInfo.Email, googleInfo.Name, googleInfo.Picture)
+
+		}
+		log.Printf("Erreur lors de la récupération des informations de l'utilisateur: %v", err)
+		http.Error(w, "Erreur lors de la récupération des informations de l'utilisateur", http.StatusInternalServerError)
+		return
+	}
+
+	session, err := store.Get(r, "userSession")
+	if err != nil {
+		log.Printf("Erreur lors de la récupération de la session: %v", err)
+		http.Error(w, "Erreur de session", http.StatusInternalServerError)
+		return
+	}
+
+	session.Values["userID"] = u.ID
+	fmt.Println("Logged in user ID:", session.Values["userID"])
+
+	// Définir l'expiration de la session
+	session.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   int(sessionExpiration.Seconds()), // Durée en secondes
+		HttpOnly: true,                             // Pour des raisons de sécurité
+	}
+
+	err = session.Save(r, w)
+	if err != nil {
+		log.Printf("Erreur lors de la sauvegarde de la session: %v", err)
+		http.Error(w, "Erreur lors de la sauvegarde de la session", http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/profile", http.StatusSeeOther)
+}
+
 func (u *User) processLogin(w http.ResponseWriter, r *http.Request) {
 	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
 	if dbInitErr != nil {
@@ -203,11 +259,11 @@ func (u *User) processLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	r.ParseMultipartForm(10 << 20) // 10 MB max file size
+	r.ParseMultipartForm(20 << 20) // 20 MB max file size
 
 	email := r.FormValue("email")
 	password := r.FormValue("password")
-	err := db.QueryRow("SELECT user_id, username, email FROM users WHERE email=? AND password=?", email, password).Scan(&u.ID, &u.Username, &u.Email)
+	err := db.QueryRow("SELECT user_id, username, email FROM users WHERE email=? AND password=? AND auth_provider = 'website'", email, password).Scan(&u.ID, &u.Username, &u.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Aucun utilisateur trouvé avec cet ID", http.StatusNotFound)
@@ -245,6 +301,63 @@ func (u *User) processLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/profile", http.StatusSeeOther)
 }
 
+func downloadImage(url string) ([]byte, error) {
+	// Effectuer une requête GET pour télécharger l'image
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Vérifier le statut de la réponse
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch image: %s", resp.Status)
+	}
+
+	// Lire le contenu de la réponse dans une variable []byte
+	imageData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Retourner le contenu de l'image
+	return imageData, nil
+}
+func (u *User) processRegistrationGoogle(w http.ResponseWriter, r *http.Request, email string, username string, picture string) {
+	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+	if dbInitErr != nil {
+		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		return
+	}
+
+	// URL de l'image à télécharger
+	profile_picture_URL := picture
+
+	// Télécharger l'image et stocker temporairement
+	tempFile, err := downloadImage(profile_picture_URL)
+	if err != nil {
+		fmt.Printf("Error downloading image: %v\n", err)
+		return
+	}
+	fmt.Printf("Image downloaded and saved to: %s\n", tempFile)
+
+	// Insérer l'utilisateur dans la base de données
+	stmt, err := db.Prepare("INSERT INTO users(username, email, profile_picture, auth_provider) VALUES(?, ?, ?,?)")
+	if err != nil {
+		http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
+		return
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(username, email, tempFile, "google")
+	if err != nil {
+		http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+
+}
 func (u *User) processRegistration(w http.ResponseWriter, r *http.Request) {
 	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
 	if dbInitErr != nil {
@@ -252,7 +365,7 @@ func (u *User) processRegistration(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.ParseMultipartForm(10 << 20) // 10 MB max file size
+	r.ParseMultipartForm(20 << 20) // 20 MB max file size
 
 	username := r.FormValue("username")
 	email := r.FormValue("email")
@@ -274,14 +387,14 @@ func (u *User) processRegistration(w http.ResponseWriter, r *http.Request) {
 	fileBytes := buf.Bytes()
 
 	// Insérer l'utilisateur dans la base de données
-	stmt, err := db.Prepare("INSERT INTO users(username, email, password, profile_picture) VALUES(?, ?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO users(username, email, password, profile_picture,auth_provider) VALUES(?, ?, ?, ?,?)")
 	if err != nil {
 		http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
 		return
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(username, email, password, fileBytes)
+	_, err = stmt.Exec(username, email, password, fileBytes, "website")
 	if err != nil {
 		http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
 		return
