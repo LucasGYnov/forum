@@ -49,3 +49,27 @@ window.onclick = function(event) {
         closeFilters();
     }
 }
+
+// Carrousel JavaScript
+const prevButton = document.querySelector('.prev');
+const nextButton = document.querySelector('.next');
+const carouselContainer = document.querySelector('.carousel-container');
+
+let offset = 0;
+
+prevButton.addEventListener('click', () => {
+    offset -= 200;
+    if (offset < 0) {
+        offset = 0;
+    }
+    carouselContainer.style.transform = `translateX(-${offset}px)`;
+});
+
+nextButton.addEventListener('click', () => {
+    const maxOffset = carouselContainer.scrollWidth - carouselContainer.clientWidth;
+    offset += 200;
+    if (offset > maxOffset) {
+        offset = maxOffset;
+    }
+    carouselContainer.style.transform = `translateX(-${offset}px)`;
+});
