@@ -79,34 +79,24 @@ a{
     z-index: -1;
 }
 
-.sidenav {
-    display: none;
-    height: 30vh;
-    width: 16vw;
-    border-radius: .8rem 0 0 .8rem;
-    position: fixed;
-    z-index: 1;
-    top: 0;
-    right: 0;
-    background-color: var(--PrimarylightBGColorAlpha);
-    padding-top: 60px;
-    margin: .8rem 0;
-    transition: transform 5s ease;
-}
-
-.sidenav.active {
-    display: block;
-    transform: translateX(0);
-}
-
-
 .sidenav a {
-    padding: 8px 8px 8px 32px;
     text-decoration: none;
-    font-size: 25px;
-    color: #818181;
-    display: block;
+    font-size: 1.5rem;
+    color: #333;
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
     transition: 0.3s;
+}
+
+.sidenav a img {
+    margin-right: 1rem;
+    width: 24px;
+    height: 24px;
+}
+
+.sidenav a:hover {
+    color: #111;
 }
 
 .sidenav a:hover {
@@ -125,6 +115,35 @@ a{
     right: 25px;
     font-size: 36px;
 }
+
+#mySidenav {
+    display: none;
+    height: 30vh;
+    width: 16vw;
+    border-radius: .8rem 0 0 .8rem;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding-top: 60px;
+    margin: .8rem 0;
+    transition: transform 5s ease;
+}
+
+#mySidenav.active {
+    display: block;
+    transform: translateX(0);
+}
+
+#closeBtn {
+    font-size: 24px;
+    color: #333;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
 
 .burger-icon span {
     display: block;
@@ -623,21 +642,6 @@ a{
 
 
 
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f4f4f9;
-    margin: 0;
-    padding: 20px;
-    color: #333;
-}
-
-.title {
-    text-align: center;
-    font-size: 24px;
-    margin-bottom: 20px;
-    color: #444;
-}
-
 .carousel {
     position: relative;
     width: 80%;
@@ -665,6 +669,26 @@ body {
     overflow: hidden;
     transition: transform 0.3s;
 }
+
+.like-button-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    background-color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.like-button-container img.like-button {
+    width: 20px;
+    height: 20px;
+}
+
 
 .card-topic:hover {
     transform: scale(1.05);
@@ -722,17 +746,5 @@ body {
 .next {
     right: 10px;
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 

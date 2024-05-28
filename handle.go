@@ -174,6 +174,17 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		}
 	}
+	if r.URL.Path == "/posts" {
+		if r.Method == "GET" {
+			tmpl, err := template.ParseFiles("post.html")
+			if err != nil {
+				http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+				return
+			}
+			tmpl.Execute(w, u)
+			return
+		}
+	}
 
 	http.NotFound(w, r)
 }
@@ -473,6 +484,7 @@ func main() {
 	http.Handle("/login/oauth", &app)
 	http.Handle("/callback", &app)
 	http.Handle("/logout", new(User))
+	http.Handle("/posts", new(User))
 
 	log.Fatal(http.ListenAndServe(":5500", nil))
 }
