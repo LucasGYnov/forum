@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon forum</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="public/style-users-profile.css">
+    <link rel="stylesheet" href="public/style.css">
+</head>
+<body>
+    <header>
+        <div id="navbar">
+            <div id="left-part">
+                <a href="/"><img id="logo" src="public/logoTemp.png" alt="logo du site"></a>
+                <a href="/"><h1>BakaLand</h1></a>
+            </div>
+            <div id="openBtn">
+                <div class="burger-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <div id="mySidenav" class="sidenav">
+                <a id="closeBtn" href="#" class="close">×</a>
+                <ul>
+                    <li><a href="http://localhost:5500/feed"><img src="public/feed.png" alt="Fil d'actualité"> Fil d'actualité</a></li>
+                    <li><a href="/"><img src="public/news.png" alt="Nouveauté"> Nouveauté</a></li>
+                    <li><a href="http://localhost:5500/login"><img src="public/account.png" alt="Mon compte"> Mon compte</a></li>
+                    <li><a href="http://localhost:5500/about"><img src="public/info.png" alt="A propos"> A propos</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+    <img id="img-navbar" src="public/nav_img.jpg" alt="Image de fond Navbar">
+    <main>
+        <div class="profile-container">
+            <div class="profile-header">
+                <h1>Profil de : {{.Username}}</h1>
+            </div>
+            <div class="profile-posts">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Thème</th>
+                            <th>Titre</th>
+                            <th>Contenu</th>
+                            <th>Likes</th>
+                            <!-- Ajoutez d'autres colonnes au besoin -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Utilisez une boucle pour afficher les posts -->
+                        <tr>
+                            <td>2024-05-28</td>
+                            <td>Informatique</td>
+                            <td>Mon premier post</td>
+                            <td>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed et mollis nulla. Vivamus auctor ex eget nisi consectetur, eget volutpat velit fermentum.</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td>2024-05-27</td>
+                            <td>Voyages</td>
+                            <td>Voyage en Asie</td>
+                            <td>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor leo, eleifend eget faucibus vitae, posuere eu eros.</td>
+                            <td>20</td>
+                        </tr>
+                        <!-- Ajoutez d'autres lignes au besoin -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    <script src="public/script.js"></script>
+
+</body>
+</html>
+
