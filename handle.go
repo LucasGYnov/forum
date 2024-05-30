@@ -39,6 +39,14 @@ type User struct {
 	Base64Image string
 }
 
+type Post struct {
+	ID          int
+	Title       string
+	Description string
+	Image       []byte
+	Base64Image string
+}
+
 type App struct {
 	config *oauth2.Config
 }
@@ -109,6 +117,11 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if r.Method == "POST" {
+			db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+			if dbInitErr != nil {
+				http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+				return
+			}
 
 			err := r.ParseMultipartForm(20 << 20) // 20 MB max file size
 			if err != nil {
@@ -116,9 +129,39 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Erreur lors du parsing du formulaire", http.StatusInternalServerError)
 				return
 			}
+			r.ParseMultipartForm(20 << 20) // 20 MB max file size
 
-			message := r.Form.Get("editor-container") // Utilisez .Get() pour récupérer une seule valeur
-			log.Printf("Message: %s", message)
+			message := r.FormValue("post-message")
+
+			title := r.FormValue("post-title")
+
+			file, _, err := r.FormFile("post-attachment")
+			if err != nil {
+				http.Error(w, "Erreur lors de l'obtention du fichier", http.StatusBadRequest)
+				return
+			}
+
+			buf := bytes.NewBuffer(nil)
+			if _, err := io.Copy(buf, file); err != nil {
+				http.Error(w, "Erreur lors de la lecture du fichier", http.StatusInternalServerError)
+				return
+			}
+			fileBytes := buf.Bytes()
+
+			// Insérer l'utilisateur dans la base de données
+			stmt, err := db.Prepare("INSERT INTO posts(posts_title, posts_description, posts_profile_picture) VALUES(?, ?, ?)")
+			if err != nil {
+				http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
+				return
+			}
+			defer stmt.Close()
+			imageString := base64.StdEncoding.EncodeToString(fileBytes)
+
+			_, err = stmt.Exec(title, message, imageString)
+			if err != nil {
+				http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
+				return
+			}
 
 			// Utilisez le message comme vous le souhaitez ici...
 
@@ -195,12 +238,7 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.URL.Path == "/posts" {
 		if r.Method == "GET" {
-			tmpl, err := template.ParseFiles("post.html")
-			if err != nil {
-				http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
-				return
-			}
-			tmpl.Execute(w, u)
+			u.Feed(w, r)
 			return
 		}
 	}
@@ -488,6 +526,62 @@ func (u *User) processLogout(w http.ResponseWriter, r *http.Request) {
 
 	}
 	tmpl.Execute(w, nil)
+
+}
+
+func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
+
+	var posts []Post
+
+	/* 	posts = append(posts, Post{Title: "Post 1", Description: "This is the first post"})
+	   	posts = append(posts, Post{Title: "Post 2", Description: "This is the second post"})
+	*/
+	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+	if dbInitErr != nil {
+		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	contents, err := db.Query("SELECT posts_profile_picture,  posts_title, posts_description FROM posts")
+	if err != nil {
+		log.Printf("Erreur de serveur: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+	defer contents.Close()
+
+	for contents.Next() {
+		var post Post
+		if err := contents.Scan(&post.Base64Image, &post.Title, &post.Description); err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		}
+		posts = append(posts, post)
+	}
+
+	if err := contents.Err(); err != nil {
+		log.Printf("Erreur de serveur: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+
+	data := struct {
+		Posts []Post
+	}{
+		Posts: posts,
+	}
+
+	tmpl, err := template.ParseFiles("post.html")
+	if err != nil {
+		log.Printf("Erreur de serveur: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+
+	}
+	fmt.Println(data)
+	tmpl.Execute(w, data)
 
 }
 func main() {

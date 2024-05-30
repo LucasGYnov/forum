@@ -124,6 +124,25 @@
                     </div>
                 </div>
             </div>
+
+            {{range .Posts}}
+            <div class="card-container">
+                <div class="card">
+                    <div class="card-image">
+                        <img src ="data:image/jpeg;base64,{{.Base64Image}}" alt="One Piece Theme Image">
+                    </div>
+                    <div class="card-content">
+                        <h2 class="post-title">{{.Title}}</h2>
+                        <p class="post-theme">Thème: One piece</p>
+                        <p class="post-body">{{.Description}}</p>
+                        <div class="post-attachments">
+                            <br>
+                            <p>Pièces jointes: 3 (Image(s), Vidéo(s))</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{end}}
             <!-- Card 2 -->
             <div class="card-container">
                 <div class="card">
