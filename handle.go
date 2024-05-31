@@ -12,6 +12,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"path"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/sessions"
@@ -170,6 +172,12 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
+	if path.Base(r.URL.Path) == "post" {
+		if r.Method == "GET" {
+			postHandler(w, r)
+		}
+
+	}
 	if r.URL.Path == "/signin" {
 		if r.Method == "GET" {
 			tmpl, err := template.ParseFiles("signin.html")
@@ -257,29 +265,46 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
-/* func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	h.db, h.dbInitErr = sql.Open("sqlite3", "./forumv3.db")
-	if h.dbInitErr != nil {
-		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+/*
+	 func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+		h.db, h.dbInitErr = sql.Open("sqlite3", "./forumv3.db")
+		if h.dbInitErr != nil {
+			http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+			return
+		}
+
+		if r.URL.Path == "/" {
+			if r.Method == "GET" {
+				tmpl, err := template.ParseFiles("register.html")
+				if err != nil {
+					http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+					return
+				}
+				tmpl.Execute(w, nil)
+				return
+			} else if r.Method == "POST" {
+				h.processRegistration(w, r)
+				return
+			}
+		}
+		http.NotFound(w, r)
+	}
+*/
+func postHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 
-	if r.URL.Path == "/" {
-		if r.Method == "GET" {
-			tmpl, err := template.ParseFiles("register.html")
-			if err != nil {
-				http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
-				return
-			}
-			tmpl.Execute(w, nil)
-			return
-		} else if r.Method == "POST" {
-			h.processRegistration(w, r)
-			return
-		}
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
 	}
-	http.NotFound(w, r)
-} */
+	fmt.Println(id)
+
+}
 
 func (u *User) processLoginGoogle(w http.ResponseWriter, r *http.Request, googleInfo Goauth) {
 	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
@@ -543,7 +568,7 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	contents, err := db.Query("SELECT posts_profile_picture,  posts_title, posts_description FROM posts")
+	contents, err := db.Query("SELECT posts_id, posts_profile_picture,  posts_title, posts_description FROM posts")
 	if err != nil {
 		log.Printf("Erreur de serveur: %v", err)
 		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
@@ -553,7 +578,7 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 
 	for contents.Next() {
 		var post Post
-		if err := contents.Scan(&post.Base64Image, &post.Title, &post.Description); err != nil {
+		if err := contents.Scan(&post.ID, &post.Base64Image, &post.Title, &post.Description); err != nil {
 			log.Printf("Erreur de serveur: %v", err)
 			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
 			return
@@ -609,6 +634,7 @@ func main() {
 	http.Handle("/callback", &app)
 	http.Handle("/logout", new(User))
 	http.Handle("/posts", new(User))
+	http.Handle("/post", new(User))
 	http.Handle("/user-profile", new(User))
 
 	log.Fatal(http.ListenAndServe(":5500", nil))
