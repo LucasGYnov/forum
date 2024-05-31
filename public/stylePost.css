@@ -1,0 +1,199 @@
+/* Titre */
+.title {
+    display: flex;
+    color: var(--lightText-color);
+    justify-content: start;
+    font-weight: 600;
+    font-size: 2.3rem;
+    color: var(--lightText-color);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+    margin: 1rem 10vw;
+}
+
+/* Conteneur des cartes */
+.card-container {
+    display: flex;
+    justify-content: center;
+    height: 100%;
+}
+
+/* Carte */
+.card {
+    display: flex;
+    border: 1px solid #ccc;
+    background-color: var(--PrimarylightBGColor);
+    border-radius: 8px;
+    margin: 1rem;
+    overflow: hidden;
+    width: 80vw;
+    height: 30vh;
+}
+
+.card-image {
+    width: 100px;
+    height: auto;
+    flex-shrink: 0;
+}
+
+.card-image img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+}
+
+.card-content {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.card-content h5 {
+    margin: 0;
+    font-size: 18px;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; /* Empêche le texte de passer à la ligne */
+}
+
+.card-content p {
+    margin: 5px 0 0;
+    font-size: 14px;
+    color: #666;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; /* Empêche le texte de passer à la ligne */
+}
+
+.post-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.post-theme {
+    font-size: 1rem;
+    color: gray;
+    margin-bottom: 1rem;
+}
+
+.post-body {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.post-attachments {
+    font-size: 0.875rem;
+    color: gray;
+}
+
+/* Carousel */
+.carousel {
+    position: relative;
+    width: 80%;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 10px;
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+.carousel-container {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+
+/* Carte de sujet */
+.card-topic {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin: .5rem;
+    width: 20%;
+    height: 15rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.like-button-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    background-color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.like-button-container img.like-button {
+    width: 20px;
+    height: 20px;
+}
+
+.card-topic:hover {
+    transform: scale(1.05);
+}
+
+.card-topic img {
+    width: 7vw;
+    height: auto;
+    object-fit: cover;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.prev,
+.next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    z-index: 10;
+    border-radius: 50%;
+    transition: background 0.3s;
+}
+
+.prev:hover,
+.next:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.prev {
+    left: 10px;
+}
+
+.next {
+    right: 10px;
+}
+
+.all-categories {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    margin: 1rem auto;
+    width: 75%;
+    height: 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s;
+    padding: 15px;
+}

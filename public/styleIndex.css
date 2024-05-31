@@ -1,0 +1,169 @@
+:root {
+    /* Couleurs du texte */
+    --darkText-color: #0b0b0b;
+    --darkTextDescription-color: #202020;
+    --lightText-color: #f4f4f4;
+    --lightTextDescription-color: rgb(200, 200, 200);
+
+    /* Couleurs de fond */
+    --darkBGColor: rgb(55, 55, 55);
+    --PrimarylightBGColor: rgb(250, 250, 250);
+    --PrimarylightBGColorAlpha: rgba(255, 255, 255, 0.75);
+    --SecondarylightBGColor: rgb(230, 230, 230);
+
+    /* Couleur des éléments principaux */
+    --primaryElement-color: rgb(120, 50, 167);
+    --primaryElement-colorAlpha: rgba(120, 50, 167, 0.6);
+    --blackAlpha: rgba(0, 0, 0, 0.75);
+}
+
+/* Réinitialisation des styles */
+* {
+    font-family: "Montserrat", 'Courier New', Courier, monospace;
+    font-optical-sizing: auto;
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Conteneur principal */
+.container {
+    padding: 2rem;
+}
+
+/* Conteneur du slider */
+.slider-wrapper {
+    position: relative;
+    max-width: 60rem;
+    margin: 0 auto;
+}
+
+/* Slider */
+.slider {
+    display: flex;
+    aspect-ratio: 16 / 9;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    box-shadow: 0 1.5rem 3rem -0.75rem hsla(0, 0%, 0%, 0.25);
+    border-radius: 0.5rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Styles pour les slides */
+.slide {
+    flex: 1 0 100%;
+    scroll-snap-align: start;
+    object-fit: cover;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+/* Fond semi-transparent sur toutes les slides */
+.slide::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.slide h2,
+.slide .card-slide {
+    position: relative;
+    z-index: 2;
+}
+
+/* Titres des slides */
+.slide h2 {
+    color: var(--lightText-color);
+    font-weight: bold;
+    font-size: 2rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+    margin: 1rem;
+    text-align: center;
+}
+
+/* Centrer le contenu de .card-slide */
+.card-slide {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+    color: var(--lightText-color);
+    border-radius: 0.5rem;
+    height: 85%;
+    box-sizing: border-box;
+}
+
+.card-slide h3 {
+    max-width: 80%;
+    margin: 0 auto 1rem;
+}
+
+/* Styles pour le bouton de connexion/inscription */
+.login-button {
+    background-color: var(--primaryElement-color);
+    border: none;
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.login-button:hover {
+    background-color: var(--primaryElement-colorAlpha);
+}
+
+.button-link {
+    text-decoration: none;
+    color: var(--lightText-color);
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+/* Navigation du slider */
+.slider-nav {
+    display: flex;
+    column-gap: 2rem;
+    position: absolute;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+.slider-nav a {
+    width: 10rem;
+    height: .5rem;
+    border-radius: 20px;
+    background-color: var(--PrimarylightBGColorAlpha);
+    opacity: 0.75;
+    transition: opacity ease 250ms;
+}
+
+.slider-nav a:hover {
+    opacity: 1;
+}
+
+/* Background images for slides */
+#slide-1 {
+    background-image: url("imgS1.png");
+}
+
+#slide-2 {
+    background-image: url("imgS2.png");
+}
+
+#slide-3 {
+    background-image: url("imgS3.png");
+}

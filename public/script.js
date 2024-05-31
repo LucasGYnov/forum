@@ -51,7 +51,6 @@ window.onclick = function(event) {
 }
 
 
-// Carrousel JavaScript
 const prevButton = document.querySelector('.prev');
 const nextButton = document.querySelector('.next');
 const carouselContainer = document.querySelector('.carousel-container');
@@ -74,3 +73,4 @@ nextButton.addEventListener('click', () => {
     }
     carouselContainer.style.transform = `translateX(-${offset}px)`;
 });
+

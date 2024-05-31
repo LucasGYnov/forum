@@ -1,130 +1,148 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon forum</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <link rel="stylesheet" href="public/style.css">
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Fil d'actualité</title>
+        <!-- Favicon -->
+        <link rel="icon" href="public/logoTemp.png" type="image/x-icon">
+        <!-- SEO Meta Tags -->
+        <meta name="description" content="Bienvenue sur notre forum dédié aux animés. Rejoignez-nous pour discuter et partager vos passions autour de vos animés préférés.">
+        <meta name="keywords" content="forum, animés, manga, discussion, communauté, anime, otaku">
+        <meta name="author" content="GERARD Lucas & Hmida Sami">
+        <meta name="robots" content="index, follow">
+        <!-- Open Graph Meta Tags (pour Facebook, LinkedIn, etc.) -->
+        <meta property="og:title" content="Forum sur les animés">
+        <meta property="og:description" content="Bienvenue sur notre forum dédié aux animés. Rejoignez-nous pour discuter et partager vos passions autour de vos animés préférés.">
+        <meta property="og:image" content="URL_de_votre_image_de_prévisualisation">
+        <!-- ICI IMAGE DE PREVUALISATION -->
+        <meta property="og:url" content="URL_de_votre_forum">
+        <!-- URL du site -->
+        <meta property="og:type" content="website">
+        <!-- Twitter Meta Tags -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="Forum sur les animés">
+        <meta name="twitter:description" content="Bienvenue sur notre forum dédié aux animés. Rejoignez-nous pour discuter et partager vos passions autour de vos animés préférés.">
+        <meta name="twitter:image" content="IMG_prévisualisation">
+        <!-- ICI IMAGE DE PREVUALISATION -->
+        <meta name="twitter:url" content="URL_de_votre_forum">
+        <!-- URL du site -->
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+        <!-- CSS Stylesheets -->
+        <link rel="stylesheet" href="public/styleG.css">
+        <link rel="stylesheet" href="public/stylePost.css">
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==" crossorigin="anonymous" />
+        <!-- JavaScript -->
+        <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+     </head>
 <body>
     <header>
-        <div id="navbar">
-            <div id="left-part">
-                <a href="/"><img id="logo" src="public/logoTemp.png" alt="logo du site"></a>
-                <a href="/"><h1>BakaLand</h1></a>
-            </div>
-            <div id="openBtn">
-                <div class="burger-icon">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-            <div id="mySidenav" class="sidenav">
-                <a id="closeBtn" href="#" class="close">×</a>
-                <ul>
-                    <li><a href="http://localhost:5500/feed"><img src="public/feed.png" alt="Fil d'actualité"> Fil d'actualité</a></li>
-                    <li><a href="/"><img src="public/news.png" alt="Nouveauté"> Nouveauté</a></li>
-                    <li><a href="http://localhost:5500/login"><img src="public/account.png" alt="Mon compte"> Mon compte</a></li>
-                    <li><a href="http://localhost:5500/about"><img src="public/info.png" alt="A propos"> A propos</a></li>
-                </ul>
-            </div>
-        </div>
+        <!-- Navbar -->
+        <nav id="navbar">
+           <div id="left-part">
+              <a href="/"><img id="logo" src="public/logoTemp.png" alt="logo du site"></a>
+              <a href="/">
+                 <h1>BakaLand</h1>
+              </a>
+           </div>
+           <div id="openBtn">
+              <div class="burger-icon">
+                 <span></span>
+                 <span></span>
+                 <span></span>
+              </div>
+           </div>
+           <div id="mySidenav" class="sidenav">
+              <a id="closeBtn" href="#" class="close">×</a>
+              <ul>
+                 <li><a href="/"><img src="public/home.png" alt="Fil d'actualité">Menu</a></li>
+                 <li><a href="http://localhost:5500/posts"><img src="public/feed.png" alt="Nouveauté"> Fil d'actualité </a></li>
+                 <li><a href="http://localhost:5500/login"><img src="public/account.png" alt="Mon compte"> Mon compte</a></li>
+                 <li><a href="http://localhost:5500/about"><img src="public/info.png" alt="A propos"> A propos</a></li>
+              </ul>
+           </div>
+        </nav>
+        <!-- Image de fond Navbar -->
+        <img id="img-navbar" src="public/nav_img.jpg" alt="Image de fond Navbar">
     </header>
-    <img id="img-navbar" src="public/nav_img.jpg" alt="Image de fond Navbar">
-    <main>
-        <div id="search-section">
-            <input type="text" id="searchbar" placeholder="Rechercher un sujet, post..." title="Invalid input. Please enter a valid location." maxlength="150" />
-            <button type="submit" id="search-button"> 
-                <img src="public/search.png" alt="Search Icon">
-            </button>
-            <button type="button" id="filters-button">Filtres...</button>
-        </div>
-
-        <div id="filters-modal" class="modal">
-            <div class="modal-content">
-                <span class="close">&times;</span>
-                <h2>Filtrer les résultats</h2>
-                <form id="filters-form">
-                    <div class="filters-container">
-                        <!-- Première colonne -->
-                        <div class="filters-column">
-                            <h3>Ordre d'apparition</h3>
-                            <div class="input-group">
-                                <label for="filter-order">Ordre:</label>
-                                <select id="filter-order" name="filter-order">
-                                    <option value="recent">Le plus récent</option>
-                                    <option value="oldest">Le moins récent</option>
-                                    <option value="most-likes">Le plus de likes</option>
-                                    <option value="least-likes">Le moins de likes</option>
-                                    <option value="most-interactions">Le plus d'interactions</option>
-                                    <option value="least-interactions">Le moins d'interactions</option>
-                                </select>
-                            </div>
-
-                            <h3>Type de recherche</h3>
-                            <div class="input-group">
-                                <label for="filter-type">Chercher:</label>
-                                <select id="filter-type" name="filter-type">
-                                    <option value="post">Tout</option>
-                                    <option value="post">Post</option>
-                                    <option value="sujet">Sujet</option>
-                                    <option value="utilisateur">Utilisateur</option>
-                                </select>
-                            </div>
-                        </div>
-        
-                        <!-- Deuxième colonne -->
-                        <div class="filters-column">
-                            <h3>Sujet</h3>
-                            <div class="input-group">
-                                <label for="filter-subject">Sujet:</label>
-                                <select id="filter-subject" name="filter-subject">
-                                    <option value="">Sélectionner un sujet</option>
-                                    <option value="sujet1">Sujet 1</option>
-                                    <option value="sujet2">Sujet 2</option>
-                                    <!-- Ajouter d'autres sujets ici -->
-                                </select>
-                            </div>
-        
-                            <h3>Autres critères</h3>
-                            <div class="input-group">
-                                <label for="filter-other">Autre:</label>
-                                <input type="text" id="filter-other" name="filter-other" placeholder="Autres critères...">
-                            </div>
-                        </div>
-                    </div>
-                    <button type="submit">Appliquer les filtres</button>
-                </form>
+    <!-- Barre de recherche -->
+    <div id="search-section">
+        <!-- Contenu de la barre de recherche -->
+        <input type="text" id="searchbar" placeholder="Rechercher un sujet, post..." title="Invalid input. Please enter a valid location." maxlength="150" />
+        <button type="submit" id="search-button">
+        <img src="public/search.png" alt="Search Icon">
+        </button>
+        <button type="button" id="filters-button">Filtres...</button>
+     </div>
+     <!-- Bouton "Add" -->
+     <button id="add-button"> 
+     <img src="public/add.png" alt="Plus Icon">
+     </button>
+     <!-- Section principale -->
+     <main>
+        <p class="title">Catégories likées :</p>
+<div class="carousel">
+    <div class="carousel-container">
+        <div class="card-topic">
+            <img src="public/soloLeveling.jpg" alt="Thème 1">
+            <div class="like-button-container">
+                <img class="like-button" src="public/noLike.png" alt="Like">
+            </div>
+            <div class="card-content">
+                <h5>Solo Leveling</h5>
+                <p>123 post(s)</p>
+                <p>45 favoris</p>
             </div>
         </div>
-        <button id="add-button"> 
-            <img src="public/add.png" alt="Plus Icon">
-        </button>
+        <div class="card-topic">
+            <img src="public/imgS1.png" alt="Thème 2">
+            <div class="like-button-container">
+                <img class="like-button" src="public/noLike.png" alt="Like">
+            </div>
+            <div class="card-content">
+                <h5>JSP</h5>
+                <p>456 post(s)</p>
+                <p>78 favoris</p>
+            </div>
+        </div>
+        <div class="card-topic">
+            <img src="public/onePiece.jpg" alt="Thème 2">
+            <div class="like-button-container">
+                <img class="like-button" src="public/noLike.png" alt="Like">
+            </div>
+            <div class="card-content">
+                <h5>One piece</h5>
+                <p>456 post(s)</p>
+                <p>78 favoris</p>
+            </div>
+        </div>
+        <div class="card-topic">
+            <img src="public/hxh.jpg" alt="Thème 2">
+            <div class="like-button-container">
+                <img class="like-button" src="public/noLike.png" alt="Like">
+            </div>
+            <div class="card-content">
+                <h5>Hunter X Hunter Hunter X Hunter Hunter X Hunter</h5>
+                <p>456 post(s)</p>
+                <p>78 favoris</p>
+            </div>
+        </div>
+    </div>
+    <button class="prev">⟨</button>
+    <button class="next">⟩</button>
+</div>
+<a href="http://localhost:5500/categories">
+    <button class="all-categories">
+                Voir toutes les catégories</a>
+    </button>
+</a>
+
         <p class = "title">Tous les posts:</p>
         <!-- Card Group -->
         <div class="card-group">
             <!-- Card 1 -->
-            <div class="card-container">
-                <div class="card">
-                    <div class="card-image">
-                        <img src="public/onePiece.jpg" alt="One Piece Theme Image">
-                    </div>
-                    <div class="card-content">
-                        <h2 class="post-title">Théorie n°84 sur Sogeking, le grand mystère</h2>
-                        <p class="post-theme">Thème: One piece</p>
-                        <p class="post-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent viverra imperdiet orci nec dignissim. Curabitur id sollicitudin lectus, ac varius dui. Cras condimentum eros et lacus condimentum, a scelerisque erat facilisis. Sed eu lectus nec sapien ornare dictum. Aenean gravida nisi vel lorem pretium, non placerat erat elementum. Donec malesuada turpis vel purus cursus, sit amet vehicula odio cursus. Duis cursus diam ut magna auctor, non aliquam nulla tristique. Quisque suscipit justo ut sapien laoreet, in porttitor ex vestibulum. Integer tincidunt risus non nisl bibendum, non convallis erat ornare. Integer ac felis et lorem volutpat gravida. In nec enim id orci tristique bibendum.</p>
-                        <div class="post-attachments">
-                            <br>
-                            <p>Pièces jointes: 3 (Image(s), Vidéo(s))</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {{range .Posts}}
             <div class="card-container">
                 <a href="http://localhost:5500/post?id={{.ID}}">
@@ -145,110 +163,157 @@
                 </a>
             </div>
             {{end}}
-            <!-- Card 2 -->
-            <div class="card-container">
-                <div class="card">
-                    <div class="card-image">
-                        <img src="public/soloLeveling.jpg" alt="Solo Leveling Theme Image">
-                    </div>
-                    <div class="card-content">
-                        <h2 class="post-title">LISEZ Solo Leveling</h2>
-                        <p class="post-theme">Thème: Solo Leveling</p>
-                        <p class="post-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent viverra imperdiet orci nec dignissim. Curabitur id sollicitudin lectus, ac varius dui. Cras condimentum eros et lacus condimentum, a scelerisque erat facilisis. Sed eu lectus nec sapien ornare dictum. Aenean gravida nisi vel lorem pretium, non placerat erat elementum. Donec malesuada turpis vel purus cursus, sit amet vehicula odio cursus. Duis cursus diam ut magna auctor, non aliquam nulla tristique. Quisque suscipit justo ut sapien laoreet, in porttitor ex vestibulum. Integer tincidunt risus non nisl bibendum, non convallis erat ornare. Integer ac felis et lorem volutpat gravida. In nec enim id orci tristique bibendum.</p>
-                        <div class="post-attachments">
-                            <br>
-                            <p>Pièces jointes: 2 (Vidéo(s))</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Card 3 -->
-            <div class="card-container">
-                <div class="card">
-                    <div class="card-image">
-                        <img src="public/hxh.jpg" alt="HunterXHunter Theme Image">
-                    </div>
-                    <div class="card-content">
-                        <h2 class="post-title">Déçu de la suite de HxH</h2>
-                        <p class="post-theme">Thème: HunterXHunter</p>
-                        <p class="post-body">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent viverra imperdiet orci nec dignissim. Curabitur id sollicitudin lectus, ac varius dui. Cras condimentum eros et lacus condimentum, a scelerisque erat facilisis. Sed eu lectus nec sapien ornare dictum. Aenean gravida nisi vel lorem pretium, non placerat erat elementum. Donec malesuada turpis vel purus cursus, sit amet vehicula odio cursus. Duis cursus diam ut magna auctor, non aliquam nulla tristique. Quisque suscipit justo ut sapien laoreet, in porttitor ex vestibulum. Integer tincidunt risus non nisl bibendum, non convallis erat ornare. Integer ac felis et lorem volutpat gravida. In nec enim id orci tristique bibendum.</p>
-                        <div class="post-attachments">
-                            <br>
-                            <!-- No attachments for this post -->
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
-
-    <p class="title">Tous les thèmes:</p>
-    <div class="carousel">
-        <div class="carousel-container">
-            <div class="card-topic">
-                <img src="public/soloLeveling.jpg" alt="Thème 1">
-                <div class="like-button-container">
-                    <img class="like-button" src="public/noLike.png" alt="Like">
-                </div>
-                <div class="card-content">
-                    <h5>Solo Leveling</h5>
-                    <p>123 post(s)</p>
-                    <p>45 favoris</p>
-                </div>
-            </div>
-            <div class="card-topic">
-                <img src="public/hxh.jpg" alt="Thème 2">
-                <div class="like-button-container">
-                    <img class="like-button" src="public/noLike.png" alt="Like">
-                </div>
-                <div class="card-content">
-                    <h5>HunterXHunter</h5>
-                    <p>456 post(s)</p>
-                    <p>78 favoris</p>
-                </div>
-            </div>
-        </div>
-        <button class="prev">⟨</button>
-        <button class="next">⟩</button>
-    </div>
 
     </main>
-    <div class="footer">
+    <!-- Modals / Pop-ups -->
+    <div id="filters-modal" class="modal">
+        <div class="modal-content">
+           <span class="close">&times;</span>
+           <h2>Filtrer les résultats</h2>
+           <form id="filters-form">
+              <div class="filters-container">
+                 <!-- Première colonne -->
+                 <div class="filters-column">
+                    <h3>Ordre d'apparition</h3>
+                    <div class="input-group">
+                       <label for="filter-order">Ordre:</label>
+                       <select id="filter-order" name="filter-order">
+                          <option value="recent">Le plus récent</option>
+                          <option value="oldest">Le moins récent</option>
+                          <option value="most-likes">Le plus de likes</option>
+                          <option value="least-likes">Le moins de likes</option>
+                          <option value="most-interactions">Le plus d'interactions</option>
+                          <option value="least-interactions">Le moins d'interactions</option>
+                       </select>
+                    </div>
+                    <h3>Type de recherche</h3>
+                    <div class="input-group">
+                       <label for="filter-type">Chercher:</label>
+                       <select id="filter-type" name="filter-type">
+                          <option value="post">Tout</option>
+                          <option value="post">Post</option>
+                          <option value="sujet">Sujet</option>
+                          <option value="utilisateur">Utilisateur</option>
+                       </select>
+                    </div>
+                 </div>
+                 <!-- Deuxième colonne -->
+                 <div class="filters-column">
+                    <h3>Sujet</h3>
+                    <div class="input-group">
+                       <label for="filter-subject">Sujet:</label>
+                       <select id="filter-subject" name="filter-subject">
+                          <option value="">Sélectionner un sujet</option>
+                          <option value="sujet1">Sujet 1</option>
+                          <option value="sujet2">Sujet 2</option>
+                          <!-- Ajouter d'autres sujets ici -->
+                       </select>
+                    </div>
+                    <h3>Autres critères</h3>
+                    <div class="input-group">
+                       <label for="filter-other">Autre:</label>
+                       <input type="text" id="filter-other" name="filter-other" placeholder="Autres critères...">
+                    </div>
+                 </div>
+              </div>
+              <button type="submit">Appliquer les filtres</button>
+           </form>
+        </div>
+     </div>
+     <div id="add-post-modal" class="modal">
+        <div class="modal-content">
+           <span class="close">&times;</span>
+           <h2 id="modal-title">Ajouter un post</h2>
+           <form action="http://localhost:5500/" method="post" enctype="multipart/form-data">
+              <div class="input-group">
+                 <label for="post-title">Titre:</label>
+                 <input type="text" id="post-title" name="post-title" required>
+              </div>
+              <div class="input-group">
+                 <label for="post-subject">Nom du thème:</label>
+                 <select id="post-subject" name="post-subject">
+                    <option value="">Sélectionner un sujet</option>
+                    <option value="sujet1">Sujet 1</option>
+                    <option value="sujet2">Sujet 2</option>
+                 </select>
+              </div>
+              <div class="input-group">
+                 <label for="post-message">Message:</label>
+                 <div id="editor-container" style="height: 200px;"></div>
+                 <input type="hidden" id="hidden-message" name="editor-container">
+              </div>
+              <div class="input-group">
+                 <label for="post-attachment">Pièce jointe:</label>
+                 <input type="file" id="post-attachment" name="post-attachment">
+              </div>
+              <button type="submit">Ajouter</button>
+           </form>
+        </div>
+     </div>
+     <!-- Footer -->
+     <footer class="footer">
+        <!-- Contenu du footer -->
         <div class="footer-section">
-            <h3>Compte</h3>
-            <ul>
-                <li><a href="#">S'inscrire / Se connecter</a></li>
-                <li><a href="#">Accéder à mon profil</a></li>
-                <li><a href="#">Modifier le mot de passe</a></li>
-            </ul>
+           <h3>Compte</h3>
+           <ul>
+              <li><a href="#">S'inscrire / Se connecter</a></li>
+              <li><a href="#">Accéder à mon profil</a></li>
+              <li><a href="#">Modifier le mot de passe</a></li>
+           </ul>
         </div>
         <div class="footer-section">
-            <h3>Administration</h3>
-            <ul>
-                <li><a href="#">Signaler un post, topic, compte</a></li>
-                <li><a href="#">Demande de promotion</a></li>
-            </ul>
+           <h3>Administration</h3>
+           <ul>
+              <li><a href="#">Signaler un post, topic, compte</a></li>
+              <li><a href="#">Demande de promotion</a></li>
+           </ul>
         </div>
         <div class="footer-section">
-            <h3>About</h3>
-            <ul>
-                <li><a href="#">A propos</a></li>
-                <li><a href="#">Crédits</a></li>
-            </ul>
+           <h3>About</h3>
+           <ul>
+              <li><a href="#">A propos</a></li>
+              <li><a href="#">Crédits</a></li>
+           </ul>
         </div>
-    </div>
-    <div class="contact">
+     </footer>
+     <!-- Contact -->
+     <div class="contact">
+        <!-- Contenu de la section de contact -->
         <p class="contact-info">Nous contacter</p>
         <form action="#">
-            <label for="email">Email*</label>
-            <input type="email" id="email" name="email" minlength="7" maxlength="75" placeholder="example@mail.com" required>
-            <label for="subject">Votre objet</label>
-            <input type="text" id="subject" name="subject" maxlength="50" placeholder="Objet">
-            <label for="message">Message*</label>
-            <textarea id="message" name="message" minlength="2" maxlength="250" placeholder="Votre message" required></textarea>
-            <p>*entrer obligatoire</p>
-            <button type="submit">Envoyer</button>
+           <label for="email">Email*</label>
+           <input type="email" id="email" name="email" minlength="7" maxlength="75" placeholder="example@mail.com" required>
+           <label for="subject">Votre objet</label>
+           <input type="text" id="subject" name="subject" maxlength="50" placeholder="Objet">
+           <label for="message">Message*</label>
+           <textarea id="message" name="message" minlength="2" maxlength="250" placeholder="Votre message" required></textarea>
+           <p>*entrer obligatoire</p>
+           <button type="submit">Envoyer</button>
         </form>
-    </div>
-    <script src="public/script.js"></script>
-</body>
+     </div>
+     <!-- Scripts -->
+     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+     <script src="public/script.js"></script>
+     <script>
+        var quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'font': [] }, { 'size': [] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                    [{ 'align': [] }],
+                    ['clean']
+                ]
+            }
+        });
+        document.querySelector('form').addEventListener('submit', function() {
+            var editorContent = quill.root.innerHTML;
+            document.getElementById('hidden-message').value = editorContent;
+        });
+     </script>
+  </body>
 </html>

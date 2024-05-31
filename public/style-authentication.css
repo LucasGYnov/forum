@@ -1,0 +1,284 @@
+.login-card {
+    background: var(--PrimarylightBGColorAlpha);
+    padding: .5rem 2rem .5rem 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 40%;
+    text-align: center;
+    margin: 4rem auto 5rem auto;
+}
+
+.login-card h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #555;
+}
+
+.input-group input {
+    width: 90%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 0.25rem;
+}
+
+.social-login {
+    background: var(--PrimarylightBGColorAlpha);
+    padding: .5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 75%;
+    text-align: center;
+    margin: 2rem auto;
+}
+
+.social-login p {
+    margin-bottom: 1rem;
+    color: #555;
+    font-size: 1rem;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap :8rem;
+    margin: 2rem;
+}
+
+.social-icons a {
+    display: inline-block;
+    margin: 0 0.5rem;
+}
+
+.social-icons img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.social-icons img:hover {
+    transform: scale(1.1);
+}
+
+/* ICI MON REUF */
+button {
+    width: 50%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 0.25rem;
+    background: #ff7e5f;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #feb47b;
+}
+
+.forgot-password {
+    position: relative;
+    text-align: left;
+    margin-bottom: 1.5rem;
+    margin-top: -1rem;
+}
+
+.forgot-password a {
+    color: #555;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.signup-link {
+    margin-top: 1.5rem;
+}
+
+.signup-link p {
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.signup-link a {
+    color: #ff7e5f;
+    text-decoration: none;
+}
+
+.signup-link a:hover {
+    text-decoration: underline;
+}
+
+.profile-container {
+    background-color: var(--PrimarylightBGColorAlpha);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 60rem;
+    max-height: 60rem;
+    padding: 20px;
+    box-sizing: border-box;
+    margin: auto; /* Pour centrer horizontalement */
+    display: flex;
+    flex-direction: column; /* Aligner le contenu verticalement */
+    justify-content: center; /* Aligner le contenu verticalement */
+    align-items: center; /* Aligner le contenu horizontalement */
+}
+
+
+.image-container {
+    position: relative;
+    display: inline-block;
+    width: 120px; /* Largeur de l'image */
+    height: 120px; /* Hauteur de l'image */
+    border-radius: 50%;
+    overflow: hidden; /* Pour cacher l'icône de modification qui dépasse du conteneur */
+    transition: filter .3s ease, transform .3s ease;
+    background-color: var(--PrimarylightBGColor);
+    text-align: center; /* Pour centrer l'image horizontalement */
+    line-height: 120px; /* Pour centrer l'image verticalement */
+    background-color: transparent !important;
+}
+
+.profile-image {
+    position:relative;
+    border-radius: 50%;
+    top: -12%;
+    left: -12%;
+    max-width: 200%;
+    max-height: 200%;
+    object-fit: cover;
+}
+
+.image-container:hover {
+    filter: grayscale(100%);
+    transform: scale(1.02);
+}
+
+
+.edit-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-container:hover .edit-icon {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.profile-header {
+    text-align: center; 
+    margin-bottom: 1rem;
+}
+
+.profile-header img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    transition: filter 0.3s;
+}
+
+.profile-header img:hover {
+    filter: grayscale(100%);
+    cursor: pointer;
+}
+
+.profile-header img:active {
+    filter: none;
+}
+
+.profile-header h1 {
+    margin-top: 10px;
+    font-size: 24px;
+    color: #333;
+}
+
+.profile-section {
+    padding: 2rem;
+    width: 90%;
+}
+
+.profile-section h2 {
+    font-size: 20px;
+    color: #555;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.profile-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 1rem 0;
+}
+
+.profile-item span {
+    font-size: 16px;
+    color: #333;
+}
+
+.profile-item button {
+    background-color: #007bff;
+    width: 6rem;
+    min-width: 6rem;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.profile-item button:hover {
+    background-color: #0056b3;
+}
+
+
+.profile-details {
+    display: flex;
+    justify-content: space-between;
+}
+
+.profile-details .column {
+    width: 48%;
+}
+
+/* Ajout de styles pour la section de déconnexion */
+.logout-section {
+    width: 100%;
+    text-align: center;
+}
+
+
+#logoutForm button {
+    background-color: #dc3545;
+    width: 100%;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#logoutForm button:hover {
+    background-color: #c82333;
+}
