@@ -1,0 +1,203 @@
+/* Styles pour le conteneur de post */
+.post-container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: var(--PrimarylightBGColor);
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles pour les détails du post */
+.post-detail {
+    margin-bottom: 20px;
+}
+
+.post-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.post-theme {
+    font-size: 1rem;
+    color: gray;
+    margin-bottom: 10px;
+}
+
+.post-image img {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.post-body {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.post-attachments {
+    font-size: 1rem;
+    color: gray;
+}
+
+/* Styles pour les réponses */
+.responses {
+    margin-top: 20px;
+}
+
+.response {
+    padding: 10px;
+    border-top: 1px solid #ccc;
+    margin-top: 10px;
+}
+
+/* Styles pour le formulaire de réponse */
+.response-form {
+    margin-top: 20px;
+}
+
+.response-form h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.input-group {
+    margin-bottom: 10px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.input-group input,
+.input-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* Styles pour le conteneur de post */
+.post-container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: var(--PrimarylightBGColor);
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles pour les détails du post */
+.post-detail {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.post-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.post-theme {
+    font-size: 1rem;
+    color: gray;
+    margin-bottom: 10px;
+}
+
+.post-image img {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.post-body {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+
+.post-attachments {
+    font-size: 1rem;
+    color: gray;
+}
+
+/* Styles pour les réponses */
+.responses {
+    margin-top: 20px;
+}
+
+.response {
+    padding: 10px;
+    border-top: 1px solid #ccc;
+    margin-top: 10px;
+    position: relative;
+}
+
+/* Styles pour le formulaire de réponse */
+.response-form {
+    margin-top: 20px;
+}
+
+.response-form h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.input-group {
+    margin-bottom: 10px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.input-group input,
+.input-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.dropdown {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.ellipsis {
+    cursor: pointer;
+    font-size: 24px;
+}
