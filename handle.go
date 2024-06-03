@@ -262,7 +262,6 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	http.NotFound(w, r)
 }
 
 /*
@@ -303,6 +302,34 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(id)
+
+	var post Post
+
+	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+	if dbInitErr != nil {
+		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	err = db.QueryRow("SELECT posts_title, posts_description, posts_profile_picture FROM posts WHERE posts_id=?", id).Scan(&post.Title, &post.Description, &post.Base64Image)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Aucun utilisateur trouvé avec cet ID", http.StatusNotFound)
+			return
+		}
+		log.Printf("Erreur lors de la récupération des informations de l'utilisateur: %v", err)
+		http.Error(w, "Erreur lors de la récupération des informations de l'utilisateur", http.StatusInternalServerError)
+		return
+	}
+
+	tmpl, err := template.ParseFiles("uniquePost.html")
+	if err != nil {
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, post)
 
 }
 

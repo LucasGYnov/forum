@@ -79,12 +79,12 @@
                         <a href="#" onclick="openModal()">Signaler</a>
                     </div>
                 </div>
-                <h1 class="post-title">Titre du post</h1>
+                <h1 class="post-title">{{.Title}}</h1>
                 <p class="post-theme">Thème: One Piece</p>
                 <div class="post-image">
-                    <img src="public/onePiece.jpg" alt="Post Image">
+                    <img src="data:image/jpeg;base64,{{.Base64Image}}" alt="Post Image">
                 </div>
-                <p class="post-body">Ceci est la description du post. C'est un exemple de texte pour montrer à quoi cela ressemble.</p>
+                <p class="post-body">{{.Description}}</p>
                 <div class="post-attachments">
                     <p>Pièces jointes: 3 (Image(s), Vidéo(s))</p>
                 </div>
