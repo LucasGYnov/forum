@@ -262,6 +262,173 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	if r.URL.Path == "/submit-email" {
+		if r.Method == "POST" {
+
+			newEmail := r.FormValue("newEmail")
+
+			u.Email = newEmail
+
+			session, err := store.Get(r, "userSession")
+			if err != nil {
+				log.Printf("Erreur lors de la récupération de la session: %v", err)
+				http.Error(w, "Erreur de session", http.StatusInternalServerError)
+				return
+			}
+
+			session.Values["userEmail"] = newEmail
+
+			err = session.Save(r, w)
+			if err != nil {
+				log.Printf("Erreur lors de la sauvegarde de la session: %v", err)
+				http.Error(w, "Erreur lors de la sauvegarde de la session", http.StatusInternalServerError)
+				return
+			}
+
+			db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+			if dbInitErr != nil {
+				http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+				return
+			}
+			stmt, err := db.Prepare("UPDATE users SET email = ? WHERE user_id = ?")
+
+			if err != nil {
+				http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
+				return
+			}
+			defer stmt.Close()
+
+			userID, ok := session.Values["userID"].(int)
+			if !ok {
+				http.Error(w, "You are not connected", http.StatusInternalServerError)
+				return
+			}
+			_, err = stmt.Exec(newEmail, userID)
+			if err != nil {
+				http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
+				return
+			}
+
+			http.Redirect(w, r, "/profile", http.StatusSeeOther)
+		}
+	}
+
+	if r.URL.Path == "/submit-password" {
+		if r.Method == "POST" {
+			newPassword := r.FormValue("newPassword")
+
+			session, err := store.Get(r, "userSession")
+			if err != nil {
+				log.Printf("Erreur lors de la récupération de la session: %v", err)
+				http.Error(w, "Erreur de session", http.StatusInternalServerError)
+				return
+			}
+
+			err = session.Save(r, w)
+			if err != nil {
+				log.Printf("Erreur lors de la sauvegarde de la session: %v", err)
+				http.Error(w, "Erreur lors de la sauvegarde de la session", http.StatusInternalServerError)
+				return
+			}
+
+			db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+			if dbInitErr != nil {
+				http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+				return
+			}
+			stmt, err := db.Prepare("UPDATE users SET password = ? WHERE user_id = ?")
+
+			if err != nil {
+				http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
+				return
+			}
+			defer stmt.Close()
+
+			userID, ok := session.Values["userID"].(int)
+			if !ok {
+				http.Error(w, "You are not connected", http.StatusInternalServerError)
+				return
+			}
+			_, err = stmt.Exec(newPassword, userID)
+			if err != nil {
+				http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
+				return
+			}
+
+			http.Redirect(w, r, "/profile", http.StatusSeeOther)
+		}
+	}
+	if r.URL.Path == "/submit-picture" {
+		if r.Method == "POST" {
+			/*  session, err := store.Get(r, "userSession")
+			if err != nil {
+				log.Printf("Erreur lors de la récupération de la session: %v", err)
+				http.Error(w, "Erreur de session", http.StatusInternalServerError)
+				return
+			}
+			session.Values["userProfile_Picture"] = u.Base64Image
+
+			err = session.Save(r, w)
+			if err != nil {
+				log.Printf("Erreur lors de la sauvegarde de la session: %v", err)
+				http.Error(w, "Erreur lors de la sauvegarde de la session", http.StatusInternalServerError)
+				return
+			} */
+
+			http.Redirect(w, r, "/profile", http.StatusSeeOther)
+
+		}
+	}
+	if r.URL.Path == "/submit-username" {
+		if r.Method == "POST" {
+			newUsername := r.FormValue("newUsername")
+
+			session, err := store.Get(r, "userSession")
+			if err != nil {
+				log.Printf("Erreur lors de la récupération de la session: %v", err)
+				http.Error(w, "Erreur de session", http.StatusInternalServerError)
+				return
+			}
+
+			session.Values["userName"] = newUsername
+
+			err = session.Save(r, w)
+			if err != nil {
+				log.Printf("Erreur lors de la sauvegarde de la session: %v", err)
+				http.Error(w, "Erreur lors de la sauvegarde de la session", http.StatusInternalServerError)
+				return
+			}
+
+			db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+			if dbInitErr != nil {
+				http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+				return
+			}
+			stmt, err := db.Prepare("UPDATE users SET username = ? WHERE user_id = ?")
+
+			if err != nil {
+				http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
+				return
+			}
+			defer stmt.Close()
+
+			userID, ok := session.Values["userID"].(int)
+			if !ok {
+				http.Error(w, "You are not connected", http.StatusInternalServerError)
+				return
+			}
+			_, err = stmt.Exec(newUsername, userID)
+			if err != nil {
+				http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
+				return
+			}
+
+			http.Redirect(w, r, "/profile", http.StatusSeeOther)
+
+		}
+	}
+
 	if r.URL.Path == "/logout" {
 		if r.Method == "GET" {
 			for key := range session.Values {

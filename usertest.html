@@ -116,8 +116,11 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Modifier l'adresse e-mail</h2>
-            <input type="email" id="newEmail" placeholder="Nouvelle adresse e-mail">
-            <button id="emailSubmit">Soumettre</button>
+            <form action="/submit-email" method="POST">
+                <input type="email" id="newEmail" placeholder="Nouvelle adresse e-mail">
+                <button id="emailSubmit" type="submit">Soumettre</button>
+            </form>
+                
         </div>
     </div>
     
@@ -125,17 +128,22 @@
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Modifier le mot de passe</h2>
-            <input type="password" id="oldPassword" placeholder="Ancien mot de passe">
-            <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
-            <button id="passwordSubmit">Soumettre</button>
+            <form action="/submit-password" method="POST">
+                <input type="password" id="oldPassword" placeholder="Ancien mot de passe">
+                <input type="password" id="newPassword" placeholder="Nouveau mot de passe">
+                <button id="passwordSubmit" type="submit">Soumettre</button>
+            </form>
         </div>
     </div>
     <div id="usernameModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Modifier le pseudo</h2>
-            <input type="text" id="newUsername" placeholder="Nouveau pseudo">
-            <button id="usernameSubmit">Soumettre</button>
+            <form action="/submit-username" method="POST">
+                <input type="text" id="newUsername" placeholder="Nouveau pseudo">
+                <button id="usernameSubmit" type="submit">Soumettre</button>
+            </form>
+            
         </div>
     </div>
     <div id="birthdayModal" class="modal">
@@ -143,15 +151,16 @@
             <span class="close">&times;</span>
             <h2>Modifier la date d'anniversaire</h2>
             <input type="date" id="newBirthday">
-            <button id="birthdaySubmit">Soumettre</button>
         </div>
     </div>
     <div id="imageModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
             <h2>Changer l'image de profil</h2>
-            <input type="file" id="newImage">
-            <button id="imageSubmit">Soumettre</button>
+            <form action="/submit-picture" method="POST">
+                <input type="file" id="newImage">
+                <button id="imageSubmit" type="submit">Soumettre</button>
+            </form>
         </div>
     </div>
     <script src="public/script.js"></script>
