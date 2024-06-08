@@ -89,6 +89,25 @@
                     <p>Pièces jointes: 3 (Image(s), Vidéo(s))</p>
                 </div>
             </div>
+              <!-- Réponses au post -->
+            <div class="responses">
+                <h2>Réponses</h2>
+                {{range .Comments}}
+                <div class="response">
+                    <div class="dropdown">
+                        <span class="ellipsis">...</span>
+                        <div class="dropdown-content">
+                            <a href="#" onclick="scrollToResponseForm()">Répondre</a>
+                            <a href="#" onclick="openModal()">Signaler</a>
+                        </div>
+                    </div>
+                    <p><strong>{{.AuthorName}}</strong> a répondu:</p>
+                    <p>{{.Description}}</p>
+                    <hr>
+                </div>
+                {{end}}
+
+            </div>
 
             <!-- Réponses au post -->
             <div class="responses">
@@ -122,7 +141,7 @@
             <!-- Formulaire de réponse -->
             <div class="response-form" id="response-form">
                 <h2>Ajouter une réponse</h2>
-                <form action="http://localhost:5500/add_response" method="post" enctype="multipart/form-data">
+                <form action="http://localhost:5500/post?id={{.ID}}" method="post" enctype="multipart/form-data">
                     <div class="input-group">
                         <label for="response-message">Message:</label>
                         <div id="editor-container" style="height: 200px;"></div>

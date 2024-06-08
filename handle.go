@@ -22,7 +22,7 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-// Clé de chiffrement pour les cookies de sessio
+// Clé de chiffrement pour les cookies de session
 var store = sessions.NewCookieStore([]byte("keySession"))
 
 // Configuration de la durée d'expiration du cookie (par exemple, 40 secondes)
@@ -44,6 +44,17 @@ type User struct {
 type Post struct {
 	ID          int
 	Title       string
+	Description string
+	Image       []byte
+	Base64Image string
+	Comments    []Comment
+}
+
+type Comment struct {
+	ID         int
+	AuthorId   int
+	AuthorName string
+
 	Description string
 	Image       []byte
 	Base64Image string
@@ -89,10 +100,6 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if err = json.NewDecoder(resp.Body).Decode(&jsonResp); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-			fmt.Printf("ID: %s\n", jsonResp.Id)
-			fmt.Printf("Email: %s\n", jsonResp.Email)
-			fmt.Printf("Verified Email: %t\n", jsonResp.VerifiedEmail)
-			fmt.Printf("Picture: %s\n", jsonResp.Picture)
 			u := new(User)
 			u.processLoginGoogle(w, r, jsonResp)
 
@@ -175,6 +182,8 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if path.Base(r.URL.Path) == "post" {
 		if r.Method == "GET" {
 			postHandler(w, r)
+		} else if r.Method == "POST" {
+			u.createComment(w, r)
 		}
 
 	}
@@ -323,13 +332,117 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Erreur lors de la récupération des informations de l'utilisateur", http.StatusInternalServerError)
 		return
 	}
-
+	post.ID = id
+	post.Comments = getComments(w, r, id)
 	tmpl, err := template.ParseFiles("uniquePost.html")
 	if err != nil {
+		log.Printf("%v", err)
 		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
 		return
 	}
 	tmpl.Execute(w, post)
+
+}
+
+func (u *User) createComment(w http.ResponseWriter, r *http.Request) {
+
+	session, err := store.Get(r, "userSession")
+	if err != nil {
+		log.Printf("Erreur lors de la récupération de la session: %v", err)
+		http.Error(w, "Erreur de session", http.StatusInternalServerError)
+		return
+	}
+
+	userID, ok := session.Values["userID"].(int)
+	if !ok {
+		http.Error(w, "You are not connected", http.StatusInternalServerError)
+		return
+	}
+
+	userEmail, ok := session.Values["userEmail"].(string)
+	if !ok {
+		http.Error(w, "You are not connected", http.StatusInternalServerError)
+		return
+	}
+
+	userProfilePicture, ok := session.Values["userProfile_Picture"].(string)
+	if !ok {
+		http.Error(w, "You are not connected", http.StatusInternalServerError)
+		return
+	}
+
+	userName, ok := session.Values["userName"].(string)
+	if !ok {
+		http.Error(w, "You are not connected", http.StatusInternalServerError)
+		return
+	}
+	u.ID = userID
+	u.Email = userEmail
+	u.Base64Image = userProfilePicture
+	u.Username = userName
+
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	post_id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+	if dbInitErr != nil {
+		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		return
+	}
+
+	err = r.ParseMultipartForm(20 << 20) // 20 MB max file size
+	if err != nil {
+		log.Printf("Erreur lors du parsing du formulaire: %v", err)
+		http.Error(w, "Erreur lors du parsing du formulaire", http.StatusInternalServerError)
+		return
+	}
+	r.ParseMultipartForm(20 << 20) // 20 MB max file size
+
+	message := r.FormValue("response-message")
+
+	file, _, err := r.FormFile("response-attachment")
+	if err != nil {
+		http.Error(w, "Erreur lors de l'obtention du fichier", http.StatusBadRequest)
+		return
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, file); err != nil {
+		http.Error(w, "Erreur lors de la lecture du fichier", http.StatusInternalServerError)
+		return
+	}
+	fileBytes := buf.Bytes()
+
+	// Insérer l'utilisateur dans la base de données
+	stmt, err := db.Prepare("INSERT INTO comments2(comments2_text, comments2_post_id, comments2_author_id) VALUES(?, ?, ?)")
+	if err != nil {
+		http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
+		return
+	}
+	defer stmt.Close()
+	imageString := base64.StdEncoding.EncodeToString(fileBytes)
+	imageString = "image"
+	fmt.Println(imageString)
+
+	_, err = stmt.Exec(message, post_id, u.ID)
+	if err != nil {
+		http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
+		return
+	}
+
+	// Utilisez le message comme vous le souhaitez ici...
+	url := fmt.Sprintf("http://localhost:5500/post?id=%v ", post_id)
+
+	http.Redirect(w, r, url, http.StatusSeeOther)
 
 }
 
@@ -341,7 +454,7 @@ func (u *User) processLoginGoogle(w http.ResponseWriter, r *http.Request, google
 	}
 	defer db.Close()
 
-	err := db.QueryRow("SELECT user_id, username, email FROM users WHERE email=? AND auth_provider = 'google'", googleInfo.Email).Scan(&u.ID, &u.Username, &u.Email)
+	err := db.QueryRow("SELECT user_id, username, email, profile_picture FROM users WHERE email=? AND auth_provider = 'google'", googleInfo.Email).Scan(&u.ID, &u.Username, &u.Email, &u.Base64Image)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -364,6 +477,9 @@ func (u *User) processLoginGoogle(w http.ResponseWriter, r *http.Request, google
 	}
 
 	session.Values["userID"] = u.ID
+	session.Values["userEmail"] = u.Email
+	session.Values["userProfile_Picture"] = u.Base64Image
+	session.Values["userName"] = u.Username
 	fmt.Println("Logged in user ID:", session.Values["userID"])
 
 	// Définir l'expiration de la session
@@ -414,7 +530,9 @@ func (u *User) processLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	session.Values["userID"] = u.ID
-	fmt.Println("Logged in user ID:", session.Values["userID"])
+	session.Values["userEmail"] = u.Email
+	session.Values["userProfile_Picture"] = u.Base64Image
+	session.Values["userName"] = u.Username
 
 	// Définir l'expiration de la session
 	session.Options = &sessions.Options{
@@ -470,7 +588,6 @@ func (u *User) processRegistrationGoogle(w http.ResponseWriter, r *http.Request,
 		fmt.Printf("Error downloading image: %v\n", err)
 		return
 	}
-	fmt.Printf("Image downloaded and saved to: %s\n", tempFile)
 
 	// Insérer l'utilisateur dans la base de données
 	stmt, err := db.Prepare("INSERT INTO users(username, email, profile_picture, auth_provider) VALUES(?, ?, ?,?)")
@@ -580,6 +697,61 @@ func (u *User) processLogout(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, nil)
 
 }
+func getComments(w http.ResponseWriter, r *http.Request, postID int) []Comment {
+
+	var comments []Comment
+
+	/* 	posts = append(posts, Post{Title: "Post 1", Description: "This is the first post"})
+	   	posts = append(posts, Post{Title: "Post 2", Description: "This is the second post"})
+	*/
+	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+	if dbInitErr != nil {
+		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+
+	}
+	defer db.Close()
+	fmt.Println(postID)
+
+	contents, err := db.Query("SELECT comments2_text, comments2_author_id FROM comments2 WHERE comments2_post_id = ?", postID)
+	if err != nil {
+		log.Printf("Erreur de serveur: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return nil
+
+	}
+	/* 	defer contents.Close()
+	 */
+	for contents.Next() {
+		var comment Comment
+		err := contents.Scan(&comment.Description, &comment.AuthorId)
+		if err != nil {
+			log.Printf("Erreur de serveurs: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return nil
+
+		}
+		authorErr := db.QueryRow("SELECT username FROM users WHERE user_id=?", comment.AuthorId).Scan(&comment.AuthorName)
+		if authorErr != nil {
+			log.Printf("Erreur de serveurss: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return nil
+
+		}
+
+		comments = append(comments, comment)
+		fmt.Println(comments)
+
+	}
+
+	if err := contents.Err(); err != nil {
+		log.Printf("Erreur de serveursss: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return nil
+
+	}
+
+	return comments
+}
 
 func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 
@@ -632,7 +804,6 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	fmt.Println(data)
 	tmpl.Execute(w, data)
 
 }
