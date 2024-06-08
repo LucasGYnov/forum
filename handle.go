@@ -126,13 +126,26 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if r.Method == "POST" {
+			session, err := store.Get(r, "userSession")
+			if err != nil {
+				log.Printf("Erreur lors de la récupération de la session: %v", err)
+				http.Error(w, "Erreur de session", http.StatusInternalServerError)
+				return
+			}
+
+			_, ok := session.Values["userID"].(int)
+			if !ok {
+				http.Error(w, "You are not connected", http.StatusInternalServerError)
+				return
+			}
 			db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+
 			if dbInitErr != nil {
 				http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
 				return
 			}
 
-			err := r.ParseMultipartForm(20 << 20) // 20 MB max file size
+			err = r.ParseMultipartForm(20 << 20) // 20 MB max file size
 			if err != nil {
 				log.Printf("Erreur lors du parsing du formulaire: %v", err)
 				http.Error(w, "Erreur lors du parsing du formulaire", http.StatusInternalServerError)
@@ -203,13 +216,29 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.URL.Path == "/login" {
 		if r.Method == "GET" {
-			tmpl, err := template.ParseFiles("login.html")
+			//Verify if already connected
+			session, err := store.Get(r, "userSession")
 			if err != nil {
-				http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+				log.Printf("Erreur lors de la récupération de la session: %v", err)
+				http.Error(w, "Erreur de session", http.StatusInternalServerError)
 				return
 			}
-			tmpl.Execute(w, u)
-			return
+
+			_, ok := session.Values["userID"].(int)
+			if !ok {
+
+				tmpl, err := template.ParseFiles("login.html")
+				if err != nil {
+					http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+					return
+				}
+				tmpl.Execute(w, u)
+				return
+			} else {
+				http.Redirect(w, r, "/profile", http.StatusSeeOther)
+
+			}
+
 		} else if r.Method == "POST" {
 			u.processLogin(w, r)
 			return
@@ -222,6 +251,9 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				u.loadUserFromDB(userID)
 				u.handleUser(w, r)
 				return
+			} else {
+				http.Redirect(w, r, "/login", http.StatusSeeOther)
+
 			}
 
 		} else if r.Method == "POST" {
