@@ -77,7 +77,7 @@
 .slide h2,
 .slide .card-slide {
     position: relative;
-    z-index: 2;
+    z-index: 1;
 }
 
 /* Titres des slides */
@@ -387,7 +387,7 @@
 
 .card-slide ul li:hover {
     background-color: var(--secondElement-color);
-    transform: scale(1.05);
+    transform: scale(1.02);
 }
 
 .card-slide ul li a {
