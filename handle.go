@@ -316,19 +316,14 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.URL.Path == "/submit-password" {
 		if r.Method == "POST" {
+			r.ParseMultipartForm(20 << 20) // 20 MB max file size
 			newPassword := r.FormValue("newPassword")
+			oldPassword := r.FormValue("oldPassword")
 
 			session, err := store.Get(r, "userSession")
 			if err != nil {
 				log.Printf("Erreur lors de la récupération de la session: %v", err)
 				http.Error(w, "Erreur de session", http.StatusInternalServerError)
-				return
-			}
-
-			err = session.Save(r, w)
-			if err != nil {
-				log.Printf("Erreur lors de la sauvegarde de la session: %v", err)
-				http.Error(w, "Erreur lors de la sauvegarde de la session", http.StatusInternalServerError)
 				return
 			}
 
@@ -349,7 +344,26 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if !ok {
 				http.Error(w, "You are not connected", http.StatusInternalServerError)
 				return
+
 			}
+
+			userEmail, ok := session.Values["userEmail"].(string)
+			if !ok {
+				http.Error(w, "You are not connected", http.StatusInternalServerError)
+				return
+			}
+
+			var verifPassword string
+
+			_ = db.QueryRow("SELECT password FROM users WHERE email=? AND password=? ", userEmail, oldPassword).Scan(&verifPassword)
+
+			if oldPassword != verifPassword {
+
+				http.Error(w, "Mauvais mot de passe", http.StatusNotFound)
+				return
+
+			}
+
 			_, err = stmt.Exec(newPassword, userID)
 			if err != nil {
 				http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
@@ -361,20 +375,61 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.URL.Path == "/submit-picture" {
 		if r.Method == "POST" {
-			/*  session, err := store.Get(r, "userSession")
+
+			r.ParseMultipartForm(20 << 20)
+
+			file, _, err := r.FormFile("newImage")
+			if err != nil {
+				http.Error(w, "Erreur lors de l'obtention du fichier", http.StatusBadRequest)
+				return
+			}
+			defer file.Close()
+
+			// Lire le fichier dans un slice de bytes
+			buf := bytes.NewBuffer(nil)
+			if _, err := io.Copy(buf, file); err != nil {
+				http.Error(w, "Erreur lors de la lecture du fichier", http.StatusInternalServerError)
+				return
+			}
+			newPicture := buf.Bytes()
+
+			session, err := store.Get(r, "userSession")
 			if err != nil {
 				log.Printf("Erreur lors de la récupération de la session: %v", err)
 				http.Error(w, "Erreur de session", http.StatusInternalServerError)
 				return
 			}
-			session.Values["userProfile_Picture"] = u.Base64Image
 
 			err = session.Save(r, w)
 			if err != nil {
 				log.Printf("Erreur lors de la sauvegarde de la session: %v", err)
 				http.Error(w, "Erreur lors de la sauvegarde de la session", http.StatusInternalServerError)
 				return
-			} */
+			}
+
+			db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+			if dbInitErr != nil {
+				http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+				return
+			}
+			stmt, err := db.Prepare("UPDATE users SET profile_picture = ? WHERE user_id = ?")
+
+			if err != nil {
+				http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
+				return
+			}
+			defer stmt.Close()
+
+			userID, ok := session.Values["userID"].(int)
+			if !ok {
+				http.Error(w, "You are not connected", http.StatusInternalServerError)
+				return
+			}
+			_, err = stmt.Exec(newPicture, userID)
+			if err != nil {
+				http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
+				return
+			}
 
 			http.Redirect(w, r, "/profile", http.StatusSeeOther)
 
@@ -383,6 +438,7 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/submit-username" {
 		if r.Method == "POST" {
 			newUsername := r.FormValue("newUsername")
+			fmt.Println(newUsername)
 
 			session, err := store.Get(r, "userSession")
 			if err != nil {
