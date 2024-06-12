@@ -139,11 +139,55 @@
     justify-content: center;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
+.like-form{
+    position: relative;
+    z-index: 10; 
+    width: 40px;
+    height: 40px;
+    
 
-.like-button-container img.like-button {
-    width: 20px;
-    height: 20px;
 }
+.like-button {
+    position: relative;
+    background: none;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    z-index: 10; 
+
+
+}
+
+.heart{
+    width: 40px;
+    height: 40px;
+    background: url(likeButton2.png) no-repeat;
+    background-size: 2900%;
+    transform: scale(2);
+    z-index: 10; 
+
+}
+
+.heart.heart-active{
+    background-position: right;
+    animation : animate .8s steps(28) 1;
+}
+.submitButton{
+    display: none;
+    border: none;      /* Supprime la bordure */
+    outline: none;     /* Supprime le contour lorsqu'on clique ou focus */
+}
+
+
+@keyframes animate {
+    0%{
+        background-position: left;
+    }
+    100%{
+        background-position: right;
+    }
+}
+ 
 
 .card-topic:hover {
     transform: scale(1.05);

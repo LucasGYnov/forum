@@ -6,6 +6,7 @@
         <title>Fil d'actualité</title>
         <!-- Favicon -->
         <link rel="icon" href="public/logoTemp.png" type="image/x-icon">
+        <script src ="https://code.jquery.com/jquery-3.4.1.js"></script>
         <!-- SEO Meta Tags -->
         <meta name="description" content="Bienvenue sur notre forum dédié aux animés. Rejoignez-nous pour discuter et partager vos passions autour de vos animés préférés.">
         <meta name="keywords" content="forum, animés, manga, discussion, communauté, anime, otaku">
@@ -89,9 +90,13 @@
     <div class="carousel-container">
         <div class="card-topic">
             <img src="public/soloLeveling.jpg" alt="Thème 1">
-            <div class="like-button-container">
-                <img class="like-button" src="public/noLike.png" alt="Like">
-            </div>
+                  
+            <form action="/like" method="POST" target="invisible-frame" class="like-form">
+                     <input type="hidden" name="post_id" value="123"> <!-- Remplacer par l'ID du post -->
+                     <button type="submit" class="like-button">
+                         <div class="heart"></div>
+                     </button>
+            </form>
             <div class="card-content">
                 <h5>Solo Leveling</h5>
                 <p>123 post(s)</p>
@@ -173,7 +178,7 @@
         <div class="modal-content">
            <span class="close">&times;</span>
            <h2>Filtrer les résultats</h2>
-           <form id="filters-form">
+           <form id="filters-form"  action="http://localhost:5500/apply-filters" method="POST">
               <div class="filters-container">
                  <!-- Première colonne -->
                  <div class="filters-column">
@@ -316,6 +321,12 @@
             var editorContent = quill.root.innerHTML;
             document.getElementById('hidden-message').value = editorContent;
         });
+        $(document).ready(function(){
+         $(".like-form").click(function(){
+            $(".heart").toggleClass("heart-active")
+         })
+        });
      </script>
+      <iframe name="invisible-frame" style="display:none;"></iframe>
   </body>
 </html>

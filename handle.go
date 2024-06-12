@@ -77,6 +77,11 @@ type Goauth struct {
 
 var jsonResp Goauth
 
+var filterOrder string
+var filterType string
+var filterSubject string
+var filterOther string
+
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/login/oauth" {
 		if r.Method == "GET" {
@@ -200,6 +205,23 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
+	if r.URL.Path == "/like" {
+		if r.Method == "POST" {
+			fmt.Println("il a liké zebi")
+		}
+	}
+	if r.URL.Path == "/apply-filters" {
+		if r.Method == "POST" {
+			filterOrder = r.FormValue("filter-order")
+			filterType = r.FormValue("filter-type")
+			filterSubject = r.FormValue("filter-subject")
+			filterOther = r.FormValue("filter-other")
+
+			http.Redirect(w, r, "/posts", http.StatusSeeOther)
+
+		}
+	}
+
 	if r.URL.Path == "/signin" {
 		if r.Method == "GET" {
 			tmpl, err := template.ParseFiles("signin.html")
@@ -665,17 +687,19 @@ func (u *User) createComment(w http.ResponseWriter, r *http.Request) {
 	message := r.FormValue("response-message")
 
 	file, _, err := r.FormFile("response-attachment")
-	if err != nil {
-		http.Error(w, "Erreur lors de l'obtention du fichier", http.StatusBadRequest)
-		return
-	}
 
-	buf := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buf, file); err != nil {
-		http.Error(w, "Erreur lors de la lecture du fichier", http.StatusInternalServerError)
-		return
+	if err == nil {
+		buf := bytes.NewBuffer(nil)
+		if _, err := io.Copy(buf, file); err != nil {
+			http.Error(w, "Erreur lors de la lecture du fichier", http.StatusInternalServerError)
+			return
+		}
+		fileBytes := buf.Bytes()
+		imageString := base64.StdEncoding.EncodeToString(fileBytes)
+		imageString = "image"
+		fmt.Println(imageString)
+
 	}
-	fileBytes := buf.Bytes()
 
 	// Insérer l'utilisateur dans la base de données
 	stmt, err := db.Prepare("INSERT INTO comments2(comments2_text, comments2_post_id, comments2_author_id) VALUES(?, ?, ?)")
@@ -684,9 +708,6 @@ func (u *User) createComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer stmt.Close()
-	imageString := base64.StdEncoding.EncodeToString(fileBytes)
-	imageString = "image"
-	fmt.Println(imageString)
 
 	_, err = stmt.Exec(message, post_id, u.ID)
 	if err != nil {
@@ -694,6 +715,12 @@ func (u *User) createComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, err = db.Exec("UPDATE posts SET posts_nbcomment = posts_nbcomment + 1 WHERE posts_id = ?", post_id)
+	if err != nil {
+		log.Printf("Erreur de serveur: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
 	// Utilisez le message comme vous le souhaitez ici...
 	url := fmt.Sprintf("http://localhost:5500/post?id=%v ", post_id)
 
@@ -1022,12 +1049,71 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	contents, err := db.Query("SELECT posts_id, posts_profile_picture,  posts_title, posts_description FROM posts")
-	if err != nil {
-		log.Printf("Erreur de serveur: %v", err)
-		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
-		return
+	var contents *sql.Rows
+
+	if filterOrder == "recent" {
+		request, err := db.Query("SELECT posts_id, posts_profile_picture,  posts_title, posts_description FROM posts")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		} else {
+			contents = request
+		}
+
+	} else if filterOrder == "oldest" {
+		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description FROM posts ORDER BY posts_id DESC")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		} else {
+			contents = request
+		}
+
+	} else if filterOrder == "most-likes" {
+		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description FROM posts ORDER BY posts_nblike DESC")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		}
+		contents = request
+	} else if filterOrder == "least-likes" {
+		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description FROM posts ORDER BY  posts_nblike ASC")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		}
+		contents = request
+	} else if filterOrder == "most-interactions" {
+		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description FROM posts ORDER BY  posts_nbcomment DESC")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		}
+		contents = request
+	} else if filterOrder == "least-interactions" {
+		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description FROM posts ORDER BY  posts_nbcomment ASC")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		}
+		contents = request
+	} else {
+		request, err := db.Query("SELECT posts_id, posts_profile_picture,  posts_title, posts_description FROM posts")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		} else {
+			contents = request
+		}
 	}
+
 	defer contents.Close()
 
 	for contents.Next() {
