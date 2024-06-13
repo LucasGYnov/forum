@@ -97,9 +97,10 @@
            </div>
                   
             <form action="/like" method="POST" target="invisible-frame" class="like-form">
-                     <input type="hidden" name="post_id" value="123"> <!-- Remplacer par l'ID du post -->
-                     <button type="submit" class="like-button">
-                         <div class="heart"></div>
+                     <input type="hidden" name="post_id" value="4123"> <!-- Remplacer par l'ID du post -->
+                     <input type="hidden" name="isLiked"  value="false">
+                     <button type="submit" id = "4123" name ="4123" class="like-button" data-liked="false">
+                         <div class="heart" id ="41123"></div>
                      </button>
             </form>
            
@@ -114,6 +115,13 @@
                 <p>456 post(s)</p>
                 <p>78 favoris</p>
             </div>
+            <form action="/like" method="POST" target="invisible-frame" class="like-form">
+               <input type="hidden" name="post_id" value="3"> <!-- Remplacer par l'ID du post -->
+               <input type="hidden" name="isLiked"  value="false">
+               <button type="submit" id = "123" name ="123" class="like-button" data-liked="false">
+                   <div class="heart" id ="1123"></div>
+               </button>
+      </form>
         </div>
         <div class="card-topic">
             <img src="public/onePiece.jpg" alt="Thème 2">
@@ -322,11 +330,42 @@
             var editorContent = quill.root.innerHTML;
             document.getElementById('hidden-message').value = editorContent;
         });
-        $(document).ready(function(){
-         $(".like-form").click(function(){
-            $(".heart").toggleClass("heart-active")
-         })
-        });
+         $(document).ready(function() {
+    $(".like-form").submit(function(event) {
+
+        var $form = $(this);
+        var $isLikedInput = $form.find('input[name="isLiked"]');
+        var postId = $form.find('input[name="post_id"]').val(); // Récupère l'ID du post
+
+        // Recherche l'élément .heart à l'intérieur du bouton like
+        var $heart = $form.find('.heart');
+
+        // Vérifie l'état "liked"
+        var liked = $form.find('.like-button').attr('data-liked') === 'true';
+
+        $isLikedInput.val(liked.toString());
+
+        // Ajoute ou supprime la classe heart-active pour le cœur spécifique
+        $heart.toggleClass("heart-active", !liked);
+
+        // Met à jour l'attribut data-liked pour le bouton
+        $form.find('.like-button').attr('data-liked', !liked);
+
+        // Facultatif : Met à jour les informations affichées (nombre de likes, etc.)
+        updateLikeInfo(postId, !liked); // Passe l'état inversé de "liked"
+    });
+
+    // Fonction fictive pour mettre à jour les informations d'interface utilisateur
+    function updateLikeInfo(postId, liked) {
+        if (liked) {
+            console.log('Like envoyé pour le post ' + postId);
+            // Code pour indiquer que le post est liké
+        } else {
+            console.log('Like retiré pour le post ' + postId);
+            // Code pour indiquer que le like a été retiré
+        }
+    }
+});
      </script>
       <iframe name="invisible-frame" style="display:none;"></iframe>
   </body>

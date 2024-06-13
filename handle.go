@@ -207,7 +207,11 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.URL.Path == "/like" {
 		if r.Method == "POST" {
-			fmt.Println("il a liké zebi")
+			postID := r.FormValue("post_id")
+			poststatus := r.FormValue("isLiked")
+			fmt.Println("post numero: " + postID)
+			fmt.Println("post status :" + poststatus)
+
 		}
 	}
 	if r.URL.Path == "/apply-filters" {
