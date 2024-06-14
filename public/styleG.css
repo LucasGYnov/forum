@@ -348,6 +348,50 @@ a {
 }
 
 /* Modal */
+
+.button-box {
+	width: 220px;
+	margin: 35px;
+	position: relative;
+	border-radius: 30px;
+	background: #ffd9fa
+}
+
+.toggle-btn1 {
+    padding-left: 40px;
+	cursor: pointer;
+	background: transparent;
+	border: 0;
+	outline: none;
+	position: relative;
+	text-align: center;
+    font-weight: bold;
+
+}
+.toggle-btn2 {
+    padding-left: 50px;
+
+	cursor: pointer;
+	background: transparent;
+	border: 0;
+	outline: none;
+	position: relative;
+	text-align: center;
+    font-weight: bold;
+
+}
+
+#btn {
+	left: 0;
+	top: 0;
+	position: absolute;
+	width: 110px;
+	height: 100%;
+	background: #e67e22;
+	border-radius: 30px;
+	transition: .5s;
+}
+
 .modal {
     display: none;
     position: fixed;

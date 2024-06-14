@@ -219,32 +219,68 @@
       </div>
       <div id="add-post-modal" class="modal">
          <div class="modal-content">
+            
             <span class="close">&times;</span>
+            <div class="form-box">
+               <div class="button-box">
+                  <div id="btn"></div>
+                  <button type="button" class="toggle-btn1" onclick="leftClick()">Post</button>
+                  <button type="button" class="toggle-btn2" onclick="rightClick()">Category</button>
+               </div>
+            </div>
+            
             <h2 id="modal-title">Ajouter un post</h2>
-            <form action="http://localhost:5500/" method="post" enctype="multipart/form-data">
-               <div class="input-group">
-                  <label for="post-title">Titre:</label>
-                  <input type="text" id="post-title" name="post-title" required>
-               </div>
-               <div class="input-group">
-                  <label for="post-subject">Nom du thème:</label>
-                  <select id="post-subject" name="post-subject">
-                     <option value="">Sélectionner un sujet</option>
-                     <option value="sujet1">Sujet 1</option>
-                     <option value="sujet2">Sujet 2</option>
-                  </select>
-               </div>
-               <div class="input-group">
-                  <label for="post-message">Message:</label>
-                  <div id="editor-container" style="height: 200px;"></div>
-                  <input type="hidden" id="hidden-message" name="editor-container">
-               </div>
-               <div class="input-group">
-                  <label for="post-attachment">Pièce jointe:</label>
-                  <input type="file" id="post-attachment" name="post-attachment">
-               </div>
-               <button type="submit">Ajouter</button>
-            </form>
+
+            
+            <script src="index.js"></script>
+
+           
+
+            <div id="post-form" class="form-content">
+               <form action="http://localhost:5500/" method="post" enctype="multipart/form-data">
+                  <div class="input-group">
+                     <label for="post-title">Titre:</label>
+                     <input type="text" id="post-title" name="post-title" required>
+                  </div>
+                  <div class="input-group">
+                     <label for="post-subject">Nom du thème:</label>
+                     <select id="post-subject" name="post-subject">
+                        <option value="">Sélectionner un sujet</option>
+                        <option value="sujet1">Sujet 1</option>
+                        <option value="sujet2">Sujet 2</option>
+                     </select>
+                  </div>
+                  <div class="input-group">
+                     <label for="post-message">Message:</label>
+                     <div id="editor-container" style="height: 200px;"></div>
+                     <input type="hidden" id="hidden-message" name="editor-container">
+                  </div>
+                  <div class="input-group">
+                     <label for="post-attachment">Pièce jointe:</label>
+                     <input type="file" id="post-attachment" name="post-attachment">
+                  </div>
+                  <button type="submit">Ajouter</button>
+               </form>
+            </div>
+      
+            <div id="category-form" class="form-content" style="display:none;">
+               <form action="http://localhost:5500/category" method="post" enctype="multipart/form-data">
+                  <div class="input-group">
+                     <label for="category-title">Titre de la catégorie:</label>
+                     <input type="text" id="category-title" name="category-title" required>
+                  </div>
+                  <div class="input-group">
+                     <label for="category-description">Description:</label>
+                     <textarea id="category-description" name="category-description" rows="4" required></textarea>
+                  </div>
+                  <div class="input-group">
+                     <label for="category-attachment">Pièce jointe:</label>
+                     <input type="file" id="category-attachment" name="category-attachment">
+                  </div>
+                  <button type="submit">Ajouter</button>
+               </form>
+            </div>
+
          </div>
       </div>
       <!-- Footer -->
@@ -309,6 +345,32 @@
          document.querySelector('form').addEventListener('submit', function() {
              var editorContent = quill.root.innerHTML;
              document.getElementById('hidden-message').value = editorContent;
+         });
+
+         var btn = document.getElementById('btn')
+
+       
+
+
+         function leftClick() {
+            btn.style.left = '0'
+
+            document.getElementById("post-form").style.display = "block";
+            document.getElementById("category-form").style.display = "none";
+            document.getElementById("modal-title").innerText = "Ajouter un post";
+         }
+
+         function rightClick() {
+            btn.style.left = '110px'
+
+            document.getElementById("post-form").style.display = "none";
+            document.getElementById("category-form").style.display = "block";
+            document.getElementById("modal-title").innerText = "Ajouter une catégorie";
+            }
+
+         // Optional: To ensure the modal always opens with the "Post" form visible
+         document.addEventListener('DOMContentLoaded', (event) => {
+            leftClick(); // Default to "Post" form on modal load
          });
       </script>
    </body>

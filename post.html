@@ -88,64 +88,27 @@
         <p class="title">Catégories likées :</p>
 <div class="carousel">
     <div class="carousel-container">
+      {{range .Categories}}
         <div class="card-topic">
-            <img src="public/soloLeveling.jpg" alt="Thème 1">
+         <img src ="data:image/jpeg;base64,{{.Base64Image}}" alt="Theme Image">
             <div class="card-content">
-               <h5>Solo Leveling</h5>
-               <p>123 post(s)</p>
+               <h5>{{.Title}}</h5>
+               <p>{{.NbPost}} post(s)</p>
                <p>45 favoris</p>
            </div>
                   
             <form action="/like" method="POST" target="invisible-frame" class="like-form">
-                     <input type="hidden" name="post_id" value="4123"> <!-- Remplacer par l'ID du post -->
+                     <input type="hidden" name="category_id" value={{.ID}}> <!-- Remplacer par l'ID de la catégorie -->
                      <input type="hidden" name="isLiked"  value="false">
-                     <button type="submit" id = "4123" name ="4123" class="like-button" data-liked="false">
-                         <div class="heart" id ="41123"></div>
+                     <button type="submit" class="like-button" data-liked="false">
+                         <div class="heart"></div>
                      </button>
             </form>
+
            
         </div>
-        <div class="card-topic">
-            <img src="public/imgS1.png" alt="Thème 2">
-            <div class="like-button-container">
-                <img class="like-button" src="public/noLike.png" alt="Like">
-            </div>
-            <div class="card-content">
-                <h5>JSP</h5>
-                <p>456 post(s)</p>
-                <p>78 favoris</p>
-            </div>
-            <form action="/like" method="POST" target="invisible-frame" class="like-form">
-               <input type="hidden" name="post_id" value="3"> <!-- Remplacer par l'ID du post -->
-               <input type="hidden" name="isLiked"  value="false">
-               <button type="submit" id = "123" name ="123" class="like-button" data-liked="false">
-                   <div class="heart" id ="1123"></div>
-               </button>
-      </form>
-        </div>
-        <div class="card-topic">
-            <img src="public/onePiece.jpg" alt="Thème 2">
-            <div class="like-button-container">
-                <img class="like-button" src="public/noLike.png" alt="Like">
-            </div>
-            <div class="card-content">
-                <h5>One piece</h5>
-                <p>456 post(s)</p>
-                <p>78 favoris</p>
-            </div>
-        </div>
-        <div class="card-topic">
-            <img src="public/hxh.jpg" alt="Thème 2">
-            <div class="like-button-container">
-                <img class="like-button" src="public/noLike.png" alt="Like">
-            </div>
-            <div class="card-content">
-                <h5>Hunter X Hunter Hunter X Hunter Hunter X Hunter</h5>
-                <p>456 post(s)</p>
-                <p>78 favoris</p>
-            </div>
-        </div>
-    </div>
+        {{end}}
+        
     <button class="prev">⟨</button>
     <button class="next">⟩</button>
 </div>

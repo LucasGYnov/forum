@@ -50,6 +50,15 @@ type Post struct {
 	Comments    []Comment
 }
 
+type Category struct {
+	ID          int
+	Title       string
+	NbPost      int
+	Image       []byte
+	Base64Image string
+	Posts       []Post
+}
+
 type Comment struct {
 	ID         int
 	AuthorId   int
@@ -207,10 +216,70 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if r.URL.Path == "/like" {
 		if r.Method == "POST" {
-			postID := r.FormValue("post_id")
-			poststatus := r.FormValue("isLiked")
-			fmt.Println("post numero: " + postID)
-			fmt.Println("post status :" + poststatus)
+			fmt.Print("id user")
+			fmt.Print(u.ID)
+			dataType := r.FormValue("type")
+			if dataType == "post" {
+				postID := r.FormValue("post_id")
+				postStatus := r.FormValue("isLiked")
+				fmt.Println("post numero: " + postID)
+				fmt.Println("post status :" + postStatus)
+
+				db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+				if dbInitErr != nil {
+					http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+					return
+				}
+
+				if postStatus == "false" {
+
+					_, err = db.Exec("INSERT INTO postslikes (user_id, post_id) VALUES (?, ?)", u.ID, postID)
+					if err != nil {
+						log.Printf("Erreur de serveur: %v", err)
+						http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+						return
+					}
+				} else {
+					_, err = db.Exec("DELETE FROM postslikes WHERE user_id = ? AND post_id = ?", u.ID, postID)
+					if err != nil {
+						log.Printf("Erreur de serveur: %v", err)
+						http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+						return
+					}
+				}
+
+			} else if dataType == "category" {
+				categoryID := r.FormValue("category_id")
+				categoryStatus := r.FormValue("isLiked")
+				fmt.Println("post numero: " + categoryID)
+				fmt.Println("post status :" + categoryStatus)
+
+				db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+				if dbInitErr != nil {
+					http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+					return
+				}
+
+				if categoryStatus == "false" {
+
+					_, err = db.Exec("INSERT INTO categorieslikes (user_id, category_id) VALUES (?, ?)", u.ID, categoryID)
+					if err != nil {
+						log.Printf("Erreur de serveur: %v", err)
+						http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+						return
+					}
+
+				} else {
+					_, err = db.Exec("DELETE FROM categorieslikes WHERE user_id = ? AND category_id = ?", u.ID, categoryID)
+					if err != nil {
+						log.Printf("Erreur de serveur: %v", err)
+						http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+						return
+					}
+
+				}
+
+			}
 
 		}
 	}
@@ -540,6 +609,14 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	if r.URL.Path == "/category" {
+		if r.Method == "POST" {
+			u.createCategory(w, r)
+			return
+		}
+	}
+
 	if r.URL.Path == "/user-profile" {
 		if r.Method == "GET" {
 			tmpl, err := template.ParseFiles("user-profile.html")
@@ -1042,6 +1119,7 @@ func getComments(w http.ResponseWriter, r *http.Request, postID int) []Comment {
 func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 
 	var posts []Post
+	var categories []Category
 
 	/* 	posts = append(posts, Post{Title: "Post 1", Description: "This is the first post"})
 	   	posts = append(posts, Post{Title: "Post 2", Description: "This is the second post"})
@@ -1136,10 +1214,43 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	/* 	request, err := db.Query("SELECT categories.* FROM categories JOIN categorieslikes ON categories.category_id = categorieslikes.category_id WHERE categorieslikes.user_id = ?", u.ID)
+	   	if err != nil {
+	   		log.Printf("Erreur de serveur: %v", err)
+	   		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+	   		return
+	   	} */
+
+	request, err := db.Query("SELECT category_id, category_profile_picture, category_name, category_nbpost FROM categories")
+	if err != nil {
+		log.Printf("Erreur de serveur: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+	defer request.Close()
+
+	for request.Next() {
+		var category Category
+		if err := request.Scan(&category.ID, &category.Base64Image, &category.Title, &category.NbPost); err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		}
+		categories = append(categories, category)
+	}
+
+	if err := contents.Err(); err != nil {
+		log.Printf("Erreur de serveur: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+
 	data := struct {
-		Posts []Post
+		Posts      []Post
+		Categories []Category
 	}{
-		Posts: posts,
+		Posts:      posts,
+		Categories: categories,
 	}
 
 	tmpl, err := template.ParseFiles("post.html")
@@ -1150,6 +1261,72 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 
 	}
 	tmpl.Execute(w, data)
+
+}
+
+func (u *User) createCategory(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "userSession")
+	if err != nil {
+		log.Printf("Erreur lors de la récupération de la session: %v", err)
+		http.Error(w, "Erreur de session", http.StatusInternalServerError)
+		return
+	}
+
+	_, ok := session.Values["userID"].(int)
+	if !ok {
+		http.Error(w, "You are not connected", http.StatusInternalServerError)
+		return
+	}
+	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+
+	if dbInitErr != nil {
+		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		return
+	}
+
+	err = r.ParseMultipartForm(20 << 20) // 20 MB max file size
+	if err != nil {
+		log.Printf("Erreur lors du parsing du formulaire: %v", err)
+		http.Error(w, "Erreur lors du parsing du formulaire", http.StatusInternalServerError)
+		return
+	}
+	r.ParseMultipartForm(20 << 20) // 20 MB max file size
+
+	message := r.FormValue("category-description")
+
+	title := r.FormValue("category-title")
+
+	file, _, err := r.FormFile("category-attachment")
+	if err != nil {
+		http.Error(w, "Erreur lors de l'obtention du fichier", http.StatusBadRequest)
+		return
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buf, file); err != nil {
+		http.Error(w, "Erreur lors de la lecture du fichier", http.StatusInternalServerError)
+		return
+	}
+	fileBytes := buf.Bytes()
+
+	// Insérer l'utilisateur dans la base de données
+	stmt, err := db.Prepare("INSERT INTO categories(category_name, category_description, category_profile_picture) VALUES(?, ?, ?)")
+	if err != nil {
+		http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
+		return
+	}
+	defer stmt.Close()
+	imageString := base64.StdEncoding.EncodeToString(fileBytes)
+
+	_, err = stmt.Exec(title, message, imageString)
+	if err != nil {
+		http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
+		return
+	}
+
+	// Utilisez le message comme vous le souhaitez ici...
+
+	http.Redirect(w, r, "http://localhost:5500/", http.StatusSeeOther)
 
 }
 func main() {
