@@ -200,9 +200,9 @@
                      <div class="input-group">
                         <label for="filter-subject">Sujet:</label>
                         <select id="filter-subject" name="filter-subject">
-                           <option value="">Sélectionner un sujet</option>
-                           <option value="sujet1">Sujet 1</option>
-                           <option value="sujet2">Sujet 2</option>
+                           {{range .Categories}}
+                              <option value={{.Title}}>{{.Title}}</option>
+                           {{end}}
                            <!-- Ajouter d'autres sujets ici -->
                         </select>
                      </div>
@@ -245,9 +245,9 @@
                   <div class="input-group">
                      <label for="post-subject">Nom du thème:</label>
                      <select id="post-subject" name="post-subject">
-                        <option value="">Sélectionner un sujet</option>
-                        <option value="sujet1">Sujet 1</option>
-                        <option value="sujet2">Sujet 2</option>
+                        {{range .Categories}}
+                        <option value={{.Title}}>{{.Title}}</option>
+                     {{end}}
                      </select>
                   </div>
                   <div class="input-group">

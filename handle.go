@@ -57,6 +57,7 @@ type Category struct {
 	Image       []byte
 	Base64Image string
 	Posts       []Post
+	Description string
 }
 
 type Comment struct {
@@ -136,7 +137,44 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
 				return
 			}
-			tmpl.Execute(w, u)
+
+			var categories []Category
+
+			db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+			if dbInitErr != nil {
+				http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+				return
+			}
+			defer db.Close()
+
+			request, err := db.Query("SELECT category_name FROM categories")
+			if err != nil {
+				log.Printf("Erreur de serveur: %v", err)
+				http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+				return
+			}
+			defer request.Close()
+
+			for request.Next() {
+				var category Category
+				if err := request.Scan(&category.Title); err != nil {
+					log.Printf("Erreur de serveur: %v", err)
+					http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+					return
+				}
+				categories = append(categories, category)
+			}
+
+			data := struct {
+				Categories []Category
+				User       *User
+			}{
+
+				Categories: categories,
+				User:       u,
+			}
+
+			tmpl.Execute(w, data)
 			return
 		}
 		if r.Method == "POST" {
@@ -291,6 +329,17 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			filterOther = r.FormValue("filter-other")
 
 			http.Redirect(w, r, "/posts", http.StatusSeeOther)
+
+		}
+	}
+	if r.URL.Path == "/apply-filters-category" {
+		if r.Method == "POST" {
+			filterOrder = r.FormValue("filter-order")
+			filterType = r.FormValue("filter-type")
+			filterSubject = r.FormValue("filter-subject")
+			filterOther = r.FormValue("filter-other")
+
+			http.Redirect(w, r, "/categories", http.StatusSeeOther)
 
 		}
 	}
@@ -606,6 +655,12 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/posts" {
 		if r.Method == "GET" {
 			u.Feed(w, r)
+			return
+		}
+	}
+	if r.URL.Path == "/categories" {
+		if r.Method == "GET" {
+			u.Feed2(w, r)
 			return
 		}
 	}
@@ -1254,6 +1309,154 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl, err := template.ParseFiles("post.html")
+	if err != nil {
+		log.Printf("Erreur de serveur: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+
+	}
+	tmpl.Execute(w, data)
+
+}
+
+func (u *User) Feed2(w http.ResponseWriter, r *http.Request) {
+
+	var categories []Category
+
+	/* 	posts = append(posts, Post{Title: "Post 1", Description: "This is the first post"})
+	   	posts = append(posts, Post{Title: "Post 2", Description: "This is the second post"})
+	*/
+	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+	if dbInitErr != nil {
+		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	var contents *sql.Rows
+
+	if filterOrder == "recent" {
+		request, err := db.Query("SELECT category_id, category_profile_picture, category_name, category_description FROM categories")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		} else {
+			contents = request
+		}
+
+	} else if filterOrder == "oldest" {
+		request, err := db.Query("SELECT category_id, category_profile_picture, category_name, category_description FROM categories ORDER BY category_id DESC")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		} else {
+			contents = request
+		}
+
+	} else if filterOrder == "most-likes" {
+		request, err := db.Query("SELECT category_id, category_profile_picture, category_name, category_description FROM categories ORDER BY category_nblike DESC")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		}
+		contents = request
+	} else if filterOrder == "least-likes" {
+		request, err := db.Query("SELECT category_id, category_profile_picture, category_name, category_description FROM categories ORDER BY category_nblike ASC")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		}
+		contents = request
+	} else if filterOrder == "most-interactions" {
+		request, err := db.Query("SELECT category_id, category_profile_picture, category_name, category_description FROM categories ORDER BY category_nbpost DESC")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		}
+		contents = request
+	} else if filterOrder == "least-interactions" {
+		request, err := db.Query("SELECT category_id, category_profile_picture, category_name, category_description FROM categories ORDER BY  category_nbcomment ASC")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		}
+		contents = request
+	} else {
+		request, err := db.Query("SELECT category_id, category_profile_picture, category_name, category_description FROM categories")
+		if err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		} else {
+			contents = request
+		}
+	}
+
+	defer contents.Close()
+
+	for contents.Next() {
+		var category Category
+		if err := contents.Scan(&category.ID, &category.Base64Image, &category.Title, &category.Description); err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		}
+		categories = append(categories, category)
+	}
+
+	if err := contents.Err(); err != nil {
+		log.Printf("Erreur de serveur: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+
+	/* 	request, err := db.Query("SELECT categories.* FROM categories JOIN categorieslikes ON categories.category_id = categorieslikes.category_id WHERE categorieslikes.user_id = ?", u.ID)
+	   	if err != nil {
+	   		log.Printf("Erreur de serveur: %v", err)
+	   		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+	   		return
+	   	} */
+
+	var categoriesLiked []Category
+	request, err := db.Query("SELECT category_id, category_profile_picture, category_name, category_nbpost FROM categories")
+	if err != nil {
+		log.Printf("Erreur de serveur: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+	defer request.Close()
+
+	for request.Next() {
+		var categoryLiked Category
+		if err := request.Scan(&categoryLiked.ID, &categoryLiked.Base64Image, &categoryLiked.Title, &categoryLiked.NbPost); err != nil {
+			log.Printf("Erreur de serveur: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return
+		}
+		categoriesLiked = append(categoriesLiked, categoryLiked)
+	}
+
+	if err := contents.Err(); err != nil {
+		log.Printf("Erreur de serveur: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+
+	data := struct {
+		CategoriesLiked []Category
+		Categories      []Category
+	}{
+		CategoriesLiked: categoriesLiked,
+		Categories:      categories,
+	}
+
+	tmpl, err := template.ParseFiles("category.html")
 	if err != nil {
 		log.Printf("Erreur de serveur: %v", err)
 		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
