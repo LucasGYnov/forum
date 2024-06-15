@@ -34,6 +34,9 @@
         <link rel="stylesheet" href="public/styleUniquePost.css">
         <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==" crossorigin="anonymous" />
+        
+        <link rel="stylesheet" href="public/styleG.css">
+        <link rel="stylesheet" href="public/stylePost.css">
         <!-- JavaScript -->
         <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
      </head>
@@ -82,7 +85,6 @@
                     </div>
                 </div>
                 <h1 class="post-title">{{.Title}}</h1>
-                <p class="post-theme">Thème: {{.CategoryName}}</p>
                 <div class="post-image">
                     <img src="data:image/jpeg;base64,{{.Base64Image}}" alt="Post Image">
                 </div>
@@ -92,70 +94,31 @@
                 </div>
             </div>
               <!-- Réponses au post -->
-            <div class="responses">
-                <h2>Réponses</h2>
-                {{range .Comments}}
-                <div class="response">
-                    <div class="dropdown">
-                        <span class="ellipsis">...</span>
-                        <div class="dropdown-content">
-                            <a href="#" onclick="scrollToResponseForm()">Répondre</a>
-                            <a href="#" onclick="openModal()">Signaler</a>
+              <div class="card-group">
+                <!-- Card 1 -->
+                {{range .Posts}}
+                <div class="card-container">
+                    <a href="http://localhost:5500/post?id={{.ID}}">
+                        <div class="card">
+                            <div class="card-image">
+                                <img src ="data:image/jpeg;base64,{{.Base64Image}}" alt="One Piece Theme Image">
+                            </div>
+                            <div class="card-content">
+                                <h2 class="post-title">{{.Title}}</h2>
+                                <p class="post-theme">Thème: {{.CategoryName}}</p>
+                                <p class="post-body">{{.Description}}</p>
+                                <div class="post-attachments">
+                                    <br>
+                                    <p>Pièces jointes: 3 (Image(s), Vidéo(s))</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <p><strong>{{.AuthorName}}</strong> a répondu:</p>
-                    <p>{{.Description}}</p>
-                    <hr>
+                    </a>
                 </div>
                 {{end}}
-
             </div>
 
-            <!-- Réponses au post -->
-            <div class="responses">
-                <h2>Réponses</h2>
-                <div class="response">
-                    <div class="dropdown">
-                        <span class="ellipsis">...</span>
-                        <div class="dropdown-content">
-                            <a href="#" onclick="scrollToResponseForm()">Répondre</a>
-                            <a href="#" onclick="openModal()">Signaler</a>
-                        </div>
-                    </div>
-                    <p><strong>Utilisateur1</strong> a répondu:</p>
-                    <p>Voici la réponse de l'utilisateur 1. C'est un exemple de texte pour une réponse.</p>
-                    <hr>
-                </div>
-                <div class="response">
-                    <div class="dropdown">
-                        <span class="ellipsis">...</span>
-                        <div class="dropdown-content">
-                            <a href="#" onclick="scrollToResponseForm()">Répondre</a>
-                            <a href="#" onclick="openModal()">Signaler</a>
-                        </div>
-                    </div>
-                    <p><strong>Utilisateur2</strong> a répondu:</p>
-                    <p>Voici la réponse de l'utilisateur 2. C'est un autre exemple de texte pour une réponse.</p>
-                    <hr>
-                </div>
-            </div>
-
-            <!-- Formulaire de réponse -->
-            <div class="response-form" id="response-form">
-                <h2>Ajouter une réponse</h2>
-                <form action="http://localhost:5500/post?id={{.ID}}" method="post" enctype="multipart/form-data">
-                    <div class="input-group">
-                        <label for="response-message">Message:</label>
-                        <div id="editor-container" style="height: 200px;"></div>
-                        <input type="hidden" id="hidden-message" name="response-message">
-                    </div>
-                    <div class="input-group">
-                        <label for="response-attachment">Pièce jointe:</label>
-                        <input type="file" id="response-attachment" name="response-attachment">
-                    </div>
-                    <button type="submit">Répondre</button>
-                </form>
-            </div>
+          
         </div>
     </main>
 

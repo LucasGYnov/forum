@@ -42,12 +42,13 @@ type User struct {
 }
 
 type Post struct {
-	ID          int
-	Title       string
-	Description string
-	Image       []byte
-	Base64Image string
-	Comments    []Comment
+	ID           int
+	Title        string
+	Description  string
+	Image        []byte
+	Base64Image  string
+	Comments     []Comment
+	CategoryName string
 }
 
 type Category struct {
@@ -209,6 +210,12 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			title := r.FormValue("post-title")
 
+			category := r.FormValue("post-subject")
+
+			var categoryID int
+
+			_ = db.QueryRow("SELECT category_id FROM categories WHERE category_name=?", category).Scan(&categoryID)
+
 			file, _, err := r.FormFile("post-attachment")
 			if err != nil {
 				http.Error(w, "Erreur lors de l'obtention du fichier", http.StatusBadRequest)
@@ -223,7 +230,7 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			fileBytes := buf.Bytes()
 
 			// Insérer l'utilisateur dans la base de données
-			stmt, err := db.Prepare("INSERT INTO posts(posts_title, posts_description, posts_profile_picture) VALUES(?, ?, ?)")
+			stmt, err := db.Prepare("INSERT INTO posts(posts_title, posts_description, posts_profile_picture, category_id, category_name) VALUES(?, ?, ?, ?, ?)")
 			if err != nil {
 				http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
 				return
@@ -231,7 +238,7 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			defer stmt.Close()
 			imageString := base64.StdEncoding.EncodeToString(fileBytes)
 
-			_, err = stmt.Exec(title, message, imageString)
+			_, err = stmt.Exec(title, message, imageString, categoryID, category)
 			if err != nil {
 				http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
 				return
@@ -251,6 +258,12 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			u.createComment(w, r)
 		}
 
+	}
+
+	if path.Base(r.URL.Path) == "category" {
+		if r.Method == "GET" {
+			categoryHandler(w, r)
+		}
 	}
 	if r.URL.Path == "/like" {
 		if r.Method == "POST" {
@@ -734,7 +747,7 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	err = db.QueryRow("SELECT posts_title, posts_description, posts_profile_picture FROM posts WHERE posts_id=?", id).Scan(&post.Title, &post.Description, &post.Base64Image)
+	err = db.QueryRow("SELECT posts_title, posts_description, posts_profile_picture, category_name FROM posts WHERE posts_id=?", id).Scan(&post.Title, &post.Description, &post.Base64Image, &post.CategoryName)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -754,6 +767,50 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tmpl.Execute(w, post)
+
+}
+func categoryHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+	fmt.Println(id)
+
+	var category Category
+
+	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+	if dbInitErr != nil {
+		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	err = db.QueryRow("SELECT category_name, category_description, category_profile_picture FROM categories WHERE category_id=?", id).Scan(&category.Title, &category.Description, &category.Base64Image)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			http.Error(w, "Aucun utilisateur trouvé avec cet ID", http.StatusNotFound)
+			return
+		}
+		log.Printf("Erreur lors de la récupération des informations de l'utilisateur: %v", err)
+		http.Error(w, "Erreur lors de la récupération des informations de l'utilisateur", http.StatusInternalServerError)
+		return
+	}
+	category.Posts = getPosts(w, r, id)
+	tmpl, err := template.ParseFiles("uniqueCategory.html")
+	if err != nil {
+		log.Printf("%v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+	tmpl.Execute(w, category)
 
 }
 
@@ -1170,6 +1227,54 @@ func getComments(w http.ResponseWriter, r *http.Request, postID int) []Comment {
 
 	return comments
 }
+func getPosts(w http.ResponseWriter, r *http.Request, categoryID int) []Post {
+
+	var posts []Post
+
+	/* 	posts = append(posts, Post{Title: "Post 1", Description: "This is the first post"})
+	   	posts = append(posts, Post{Title: "Post 2", Description: "This is the second post"})
+	*/
+	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+	if dbInitErr != nil {
+		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+
+	}
+	defer db.Close()
+	fmt.Println(categoryID)
+
+	contents, err := db.Query("SELECT posts_description, posts_title, posts_profile_picture, posts_id, category_name FROM posts WHERE category_id = ?", categoryID)
+	if err != nil {
+		log.Printf("Erreur de serveur: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return nil
+
+	}
+
+	defer contents.Close()
+
+	for contents.Next() {
+		var post Post
+		err := contents.Scan(&post.Description, &post.Title, &post.Base64Image, &post.ID, &post.CategoryName)
+		if err != nil {
+			log.Printf("Erreur de serveurs: %v", err)
+			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+			return nil
+
+		}
+
+		posts = append(posts, post)
+
+	}
+
+	if err := contents.Err(); err != nil {
+		log.Printf("Erreur de serveursss: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return nil
+
+	}
+
+	return posts
+}
 
 func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 
@@ -1189,7 +1294,7 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 	var contents *sql.Rows
 
 	if filterOrder == "recent" {
-		request, err := db.Query("SELECT posts_id, posts_profile_picture,  posts_title, posts_description FROM posts")
+		request, err := db.Query("SELECT posts_id, posts_profile_picture,  posts_title, posts_description, category_name FROM posts")
 		if err != nil {
 			log.Printf("Erreur de serveur: %v", err)
 			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
@@ -1199,7 +1304,7 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 		}
 
 	} else if filterOrder == "oldest" {
-		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description FROM posts ORDER BY posts_id DESC")
+		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description, category_name FROM posts ORDER BY posts_id DESC")
 		if err != nil {
 			log.Printf("Erreur de serveur: %v", err)
 			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
@@ -1209,7 +1314,7 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 		}
 
 	} else if filterOrder == "most-likes" {
-		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description FROM posts ORDER BY posts_nblike DESC")
+		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description, category_name FROM posts ORDER BY posts_nblike DESC")
 		if err != nil {
 			log.Printf("Erreur de serveur: %v", err)
 			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
@@ -1217,7 +1322,7 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 		}
 		contents = request
 	} else if filterOrder == "least-likes" {
-		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description FROM posts ORDER BY  posts_nblike ASC")
+		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description, category_name FROM posts ORDER BY  posts_nblike ASC")
 		if err != nil {
 			log.Printf("Erreur de serveur: %v", err)
 			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
@@ -1225,7 +1330,7 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 		}
 		contents = request
 	} else if filterOrder == "most-interactions" {
-		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description FROM posts ORDER BY  posts_nbcomment DESC")
+		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description, category_name FROM posts ORDER BY  posts_nbcomment DESC")
 		if err != nil {
 			log.Printf("Erreur de serveur: %v", err)
 			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
@@ -1233,7 +1338,7 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 		}
 		contents = request
 	} else if filterOrder == "least-interactions" {
-		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description FROM posts ORDER BY  posts_nbcomment ASC")
+		request, err := db.Query("SELECT posts_id, posts_profile_picture, posts_title, posts_description, category_name FROM posts ORDER BY  posts_nbcomment ASC")
 		if err != nil {
 			log.Printf("Erreur de serveur: %v", err)
 			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
@@ -1241,7 +1346,7 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 		}
 		contents = request
 	} else {
-		request, err := db.Query("SELECT posts_id, posts_profile_picture,  posts_title, posts_description FROM posts")
+		request, err := db.Query("SELECT posts_id, posts_profile_picture,  posts_title, posts_description, category_name FROM posts")
 		if err != nil {
 			log.Printf("Erreur de serveur: %v", err)
 			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
@@ -1255,7 +1360,7 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 
 	for contents.Next() {
 		var post Post
-		if err := contents.Scan(&post.ID, &post.Base64Image, &post.Title, &post.Description); err != nil {
+		if err := contents.Scan(&post.ID, &post.Base64Image, &post.Title, &post.Description, &post.CategoryName); err != nil {
 			log.Printf("Erreur de serveur: %v", err)
 			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
 			return
@@ -1512,7 +1617,6 @@ func (u *User) createCategory(w http.ResponseWriter, r *http.Request) {
 	}
 	fileBytes := buf.Bytes()
 
-	// Insérer l'utilisateur dans la base de données
 	stmt, err := db.Prepare("INSERT INTO categories(category_name, category_description, category_profile_picture) VALUES(?, ?, ?)")
 	if err != nil {
 		http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
@@ -1526,8 +1630,6 @@ func (u *User) createCategory(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
 		return
 	}
-
-	// Utilisez le message comme vous le souhaitez ici...
 
 	http.Redirect(w, r, "http://localhost:5500/", http.StatusSeeOther)
 
