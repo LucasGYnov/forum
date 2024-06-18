@@ -21,12 +21,14 @@
 .card {
     display: flex;
     border: 1px solid #ccc;
-    background-color: var(--PrimarylightBGColor);
+/*     background-color: var(--PrimarylightBGColor);
+ */    
     border-radius: 8px;
     margin: 1rem;
     overflow: hidden;
     width: 80vw;
     height: 30vh;
+    background-color: #ffffff;
 }
 
 .card-image {
@@ -48,8 +50,9 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    z-index :10000;
+    flex-grow: 1; /* Fait en sorte que .card-content utilise tout l'espace disponible */
     overflow: hidden;
-    z-index :10000
 
 }
 
@@ -176,6 +179,88 @@
     display: none;
     border: none;      /* Supprime la bordure */
     outline: none;     /* Supprime le contour lorsqu'on clique ou focus */
+}
+
+.container {
+  margin-top: 100px;
+  margin-right: 100px;
+
+  --col-like: #2196f3;
+  --col-dislike: #ff3232;
+  --transition: 350ms;
+  background-color: var(--col-gray);
+  width: 130px;
+  height: 50px;
+  border-radius: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px;
+  user-select: none;
+  /*you can easlly change the number by using this variabels*/
+  --zero: translateY(calc(50% - 11px));
+  --one: translateY(calc(40% - 11px));
+  --two: translateY(calc(30% - 11px));
+  --three: translateY(calc(20% - 11px));
+  --four: translateY(calc(10% - 11px));
+  --five: translateY(calc(0% - 11px));
+  --six: translateY(calc(-10% - 11px));
+  --seven: translateY(calc(-20% - 11px));
+  --eight: translateY(calc(-30% - 11px));
+  --nine: translateY(calc(-40% - 11px));
+  --ten: translateY(calc(-50% - 11px));
+}
+
+.container label input {
+  display: none;
+}
+.container input[id^="like-"]:checked + svg {
+  animation: evaluation-animation var(--transition) ease-in-out 0s 1 normal both;
+  fill: var(--col-like);
+}
+.container input[id^="dislike-"]:checked + svg {
+  animation: evaluation-animation var(--transition) ease-in-out 0s 1 normal both;
+  fill: var(--col-dislike);
+}
+.container .icon {
+  cursor: pointer;
+  fill: var(--col-white);
+  height: 24px;
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.container .icon.like {
+  margin-left: 9px;
+}
+.container .icon.dislike {
+  margin-right: 9px;
+}
+.container .countlike {
+  flex: 1;
+  border-left: 1px solid var(--col-white);
+  border-right: 1px solid var(--col-white);
+  position: relative;
+  height: 24px;
+  margin: auto;
+  color: rgb(0, 0, 0);
+  font-family: sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5px;
+  flex-direction: row;
+}
+
+
+@keyframes evaluation-animation {
+  0%, 100% {
+      transform: scale(1) rotate(0deg);
+  }
+  50% {
+      transform: scale(1.1) rotate(-10deg);
+  }
 }
 
 
