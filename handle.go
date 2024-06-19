@@ -20,6 +20,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	_ "github.com/mattn/go-sqlite3"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -1281,7 +1282,22 @@ func (u *User) processLogin(w http.ResponseWriter, r *http.Request) {
 
 	email := r.FormValue("email")
 	password := r.FormValue("password")
-	err := db.QueryRow("SELECT user_id, username, email FROM users WHERE email=? AND password=? AND auth_provider = 'website'", email, password).Scan(&u.ID, &u.Username, &u.Email)
+	motDePasse := []byte(password)
+
+	var mdpHache string
+	db.QueryRow("SELECT password FROM users WHERE email=? AND auth_provider = 'website'", email).Scan(&mdpHache)
+
+	// Convertir le mot de passe en clair en bytes
+
+	// Comparer le mot de passe en clair avec le mot de passe haché
+	err := bcrypt.CompareHashAndPassword([]byte(mdpHache), motDePasse)
+	if err != nil {
+		// Si les mots de passe ne correspondent pas
+		http.Error(w, "Mot de passe incorrect", http.StatusUnauthorized)
+		return
+	}
+
+	err = db.QueryRow("SELECT user_id, username, email FROM users WHERE email=? AND password=? AND auth_provider = 'website'", email, mdpHache).Scan(&u.ID, &u.Username, &u.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Aucun utilisateur trouvé avec cet ID", http.StatusNotFound)
@@ -1400,6 +1416,16 @@ func (u *User) processRegistration(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	email := r.FormValue("email")
 	password := r.FormValue("password")
+	// Mot de passe en clair
+	motDePasse := []byte(password)
+
+	// Génération d'un sel et hachage du mot de passe avec le sel
+	motDePasseHache, err := bcrypt.GenerateFromPassword(motDePasse, bcrypt.DefaultCost)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	password = string(motDePasseHache)
 
 	file, _, err := r.FormFile("profile_picture")
 	if err != nil {
