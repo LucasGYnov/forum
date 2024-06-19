@@ -1,0 +1,54 @@
+main {
+    display: flex;
+    justify-content: center;
+    height: 100vh;
+}
+
+.profile-container {
+    position: relative;
+
+    width: 80%;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.profile-header {
+    position: relative;
+    background-color: rgb(120, 50, 167);
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+}
+
+.profile-posts {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center; /* Centrage horizontal */
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 auto; /* Centre le tableau horizontalement */
+}
+
+table th, table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+table th {
+    background-color: #f2f2f2;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tbody tr:hover {
+    background-color: #f1f1f1;
+}

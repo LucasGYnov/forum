@@ -30,8 +30,8 @@
       <!-- Google Fonts -->
       <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
       <!-- CSS Stylesheets -->
-      <link rel="stylesheet" href="public/styleG.css">
-      <link rel="stylesheet" href="public/styleIndex.css">
+      <link rel="stylesheet" href="public/css/styleG.css">
+      <link rel="stylesheet" href="public/css/styleIndex.css">
       <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==" crossorigin="anonymous" />
       <!-- JavaScript -->
@@ -100,45 +100,31 @@
                        </div>
                    </div>
                    <div id="slide-2" class="slide">
-                       <h2>Topics les plus visités</h2>
-                       <div class="card-slide">
-                           <div class="carousel-container">
-                              <div class="card-topic">
-                                  <img src="public/soloLeveling.jpg" alt="Thème 1">
-                                  <div class="like-button-container">
-                                      <img class="like-button" src="public/noLike.png" alt="Like">
-                                  </div>
-                                  <div class="card-content">
-                                      <h5>Solo Leveling</h5>
-                                      <p>123 post(s)</p>
-                                      <p>45 favoris</p>
-                                  </div>
-                              </div>
-                              <div class="card-topic">
-                                  <img src="public/imgS1.png" alt="Thème 2">
-                                  <div class="like-button-container">
-                                      <img class="like-button" src="public/noLike.png" alt="Like">
-                                  </div>
-                                  <div class="card-content">
-                                      <h5>JSP</h5>
-                                      <p>456 post(s)</p>
-                                      <p>78 favoris</p>
-                                  </div>
-                              </div>
-                              <div class="card-topic">
-                                  <img src="public/onePiece.jpg" alt="Thème 2">
-                                  <div class="like-button-container">
-                                      <img class="like-button" src="public/noLike.png" alt="Like">
-                                  </div>
-                                  <div class="card-content">
-                                      <h5>One piece</h5>
-                                      <p>456 post(s)</p>
-                                      <p>78 favoris</p>
-                                  </div>
-                              </div>
-                          </div>
-                       </div>
-                   </div>
+                     <h2>Topics les plus visités</h2>
+                     <div class="card-slide">
+                         <div class="carousel-container">
+                             {{range $index, $element := .Categories}}
+                             {{if lt $index 3}}
+                             <div class="card-topic">
+                                 <img src="data:image/jpeg;base64,{{$element.Base64Image}}" alt="Theme Image">
+                                 <div class="card-content">
+                                     <h5>{{$element.Title}}</h5>
+                                     <p>{{$element.NbPost}} post(s)</p>
+                                     <p>45 favoris</p>
+                                 </div>
+                                 <form action="/like" method="POST" target="invisible-frame" class="like-form">
+                                     <input type="hidden" name="category_id" value="{{$element.ID}}"> <!-- Remplacer par l'ID de la catégorie -->
+                                     <input type="hidden" name="isLiked" value="false">
+                                     <button type="submit" class="like-button" data-liked="false">
+                                         <div class="heart"></div>
+                                     </button>
+                                 </form>
+                             </div>
+                             {{end}}
+                             {{end}}
+                         </div>
+                     </div>
+                 </div>
                    <div id="slide-3" class="slide">
                      <h2>Les dernières news</h2>
                      <div class="card-slide">
@@ -338,7 +324,7 @@
             <h3>Administration</h3>
             <ul>
                <li><a href="#" onclick="openModal()">Signaler un post, topic, compte</a></li>
-               <li><a href="#">Demande de promotion</a></li>
+               <li><a onclick="scrollToContactAndSetSubject('Demande de promotion')">Demande de promotion</a></li>
             </ul>
          </div>
          <div class="footer-section">
@@ -350,20 +336,24 @@
          </div>
       </footer>
       <!-- Contact -->
-      <div class="contact">
+      <div id="contact" class="contact">
          <!-- Contenu de la section de contact -->
          <p class="contact-info">Nous contacter</p>
-         <form action="#">
-            <label for="email">Email*</label>
-            <input type="email" id="email" name="email" minlength="7" maxlength="75" placeholder="example@mail.com" required>
-            <label for="subject">Votre objet</label>
-            <input type="text" id="subject" name="subject" maxlength="50" placeholder="Objet">
-            <label for="message">Message*</label>
-            <textarea id="message" name="message" minlength="2" maxlength="250" placeholder="Votre message" required></textarea>
-            <p>*entrer obligatoire</p>
-            <button type="submit">Envoyer</button>
+         <form action="http://localhost:8080/send-email" method="POST">
+             <label for="email">Email*</label>
+             <input type="email" id="email" name="email" minlength="7" maxlength="75" placeholder="example@mail.com" required>
+             
+             <label for="subject">Votre objet</label>
+             <input type="text" id="subject" name="subject" maxlength="50" placeholder="Objet">
+             
+             <label for="message">Message*</label>
+             <textarea id="message" name="message" minlength="2" maxlength="250" placeholder="Votre message" required></textarea>
+             
+             <p>*entrer obligatoire</p>
+             <button type="submit">Envoyer</button>
          </form>
-      </div>
+     </div>
+     
       <!-- Scripts -->
       <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
       <script src="public/script.js"></script>
@@ -459,5 +449,12 @@
          }
 
      </script>
+
+<script>
+   function scrollToContactAndSetSubject(subject) {
+       document.getElementById('subject').value = subject;
+   }
+</script>
+
    </body>
 </html>
