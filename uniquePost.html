@@ -171,7 +171,7 @@
                                 {{end}}
                             </div>
                         </div>
-                        <p><strong>{{.AuthorName}}</strong> a répondu:</p>
+                        <p> <strong> <a href="http://localhost:5500/viewprofile?id={{.AuthorId}}">{{.AuthorName}} </a></strong> a répondu:</p>
                         <p>{{.Description}}</p>
                         <hr>
                     </div>
@@ -185,6 +185,7 @@
                             <label for="response-message">Message:</label>
                             <div id="editor-container" style="height: 200px;"></div>
                             <textarea id="message" name="message" minlength="2" maxlength="250" placeholder="Votre message..." required></textarea>
+                            
 
                         </div>
                         <div class="input-group">

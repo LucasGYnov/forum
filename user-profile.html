@@ -45,7 +45,6 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Date</th>
                             <th>Thème</th>
                             <th>Titre</th>
                             <th>Contenu</th>
@@ -55,20 +54,14 @@
                     </thead>
                     <tbody>
                         <!-- Utilisez une boucle pour afficher les posts -->
+                         {{range .Posts}}
                         <tr>
-                            <td>2024-05-28</td>
-                            <td>Informatique</td>
-                            <td>Mon premier post</td>
-                            <td>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed et mollis nulla. Vivamus auctor ex eget nisi consectetur, eget volutpat velit fermentum.</td>
-                            <td>10</td>
+                            <td>{{.CategoryName}}</td>
+                            <td>{{.Title}}</td>
+                            <td>{{.Description}}</td>
+                            <td>{{.Nblike}}</td>
                         </tr>
-                        <tr>
-                            <td>2024-05-27</td>
-                            <td>Voyages</td>
-                            <td>Voyage en Asie</td>
-                            <td>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor leo, eleifend eget faucibus vitae, posuere eu eros.</td>
-                            <td>20</td>
-                        </tr>
+                        {{end}}
                         <!-- Ajoutez d'autres lignes au besoin -->
                     </tbody>
                 </table>
