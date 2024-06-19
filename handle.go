@@ -1382,6 +1382,17 @@ func (u *User) handleUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
 		return
 	}
+
+	db, erro := sql.Open("sqlite3", "./forumv3.db")
+	if erro != nil {
+		return
+	}
+	defer db.Close()
+
+	erro = db.QueryRow("SELECT username, email, profile_picture FROM users WHERE user_id=?", u.ID).Scan(&u.Username, &u.Email, &u.Image)
+	if erro != nil {
+		return
+	}
 	data := struct {
 		Username    string
 		Email       string
