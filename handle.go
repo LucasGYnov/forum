@@ -17,93 +17,102 @@ import (
 	"time"
 
 	"github.com/gorilla/sessions"
-	_ "github.com/mattn/go-sqlite3"
-	"golang.org/x/crypto/bcrypt"
+	_ "github.com/mattn/go-sqlite3" // SQLite driver
+	"golang.org/x/crypto/bcrypt"    // bcrypt for password hashing
 )
 
-// Clé de chiffrement pour les cookies de session
+// Encryption key for session cookies
 var store = sessions.NewCookieStore([]byte("keySession"))
 
-// Configuration de la durée d'expiration du cookie (par exemple, 40 secondes)
+// Session cookie expiration duration (e.g., 1 hour)
 const sessionExpiration = 1 * time.Hour
 
+// RegisterHandler handles user registration
 type RegisterHandler struct {
-	db        *sql.DB
-	dbInitErr error
+	db        *sql.DB // Database connection
+	dbInitErr error   // Error during database initialization
 }
 
+// User represents a user in the system
 type User struct {
-	ID          int
-	Username    string
-	Email       string
-	Image       []byte
-	Base64Image string
-	Role        string
+	ID          int    // User ID
+	Username    string // Username
+	Email       string // Email address
+	Image       []byte // Binary representation of user's image
+	Base64Image string // Base64 encoded image for HTML display
+	Role        string // User role (e.g., admin, user)
 }
 
+// Post represents a post in the system
 type Post struct {
-	ID           int
-	Title        string
-	Description  string
-	Image        []byte
-	Base64Image  string
-	Comments     []Comment
-	CategoryName string
-	Liked        bool
-	Disliked     bool
-	Nblike       int
-	Nbdislike    int
+	ID           int       // Post ID
+	Title        string    // Post title
+	Description  string    // Post description
+	Image        []byte    // Binary representation of post's image
+	Base64Image  string    // Base64 encoded image for HTML display
+	Comments     []Comment // Comments on the post
+	CategoryName string    // Name of the category to which the post belongs
+	Liked        bool      // Indicates if the post is liked by the user
+	Disliked     bool      // Indicates if the post is disliked by the user
+	Nblike       int       // Number of likes on the post
+	Nbdislike    int       // Number of dislikes on the post
 }
 
+// Category represents a category in the system
 type Category struct {
-	ID          int
-	Title       string
-	NbPost      int
-	Image       []byte
-	Base64Image string
-	Posts       []Post
-	Description string
+	ID          int    // Category ID
+	Title       string // Category title
+	NbPost      int    // Number of posts in the category
+	Image       []byte // Binary representation of category's image
+	Base64Image string // Base64 encoded image for HTML display
+	Posts       []Post // Posts belonging to the category
+	Description string // Category description
 }
 
+// Comment represents a comment on a post
 type Comment struct {
-	ID         int
-	AuthorId   int
-	AuthorName string
-
-	Description string
-	Image       []byte
-	Base64Image string
+	ID          int    // Comment ID
+	AuthorId    int    // ID of the comment author
+	AuthorName  string // Name of the comment author
+	Description string // Comment content
+	Image       []byte // Binary representation of comment author's image
+	Base64Image string // Base64 encoded image for HTML display
 }
 
+// Goauth represents Google OAuth user information
 type Goauth struct {
-	Id            string `json:"id"`
-	Email         string `json:"email"`
-	VerifiedEmail bool   `json:"verified_email"`
-	Name          string `json:"name"`
-	GivenName     string `json:"given_name"`
-	FamilyName    string `json:"family_name"`
-	Picture       string `json:"picture"`
-	Locale        string `json:"locale"`
+	Id            string `json:"id"`             // User ID
+	Email         string `json:"email"`          // Email address
+	VerifiedEmail bool   `json:"verified_email"` // Whether the email is verified
+	Name          string `json:"name"`           // Full name
+	GivenName     string `json:"given_name"`     // Given name
+	FamilyName    string `json:"family_name"`    // Family name
+	Picture       string `json:"picture"`        // URL to user's profile picture
+	Locale        string `json:"locale"`         // User's locale
 }
 
+// Report represents a report on a post or comment
 type Report struct {
-	PostID  int
-	Reason  string
-	Comment string
-	Status  string
+	PostID  int    // ID of the reported post
+	Reason  string // Reason for the report
+	Comment string // Additional comment related to the report
+	Status  string // Current status of the report
 }
 
+// Global variables for filtering
 var (
-	reports     []Report
-	reportsLock sync.Mutex
+	reports     []Report   // Slice to store reports
+	reportsLock sync.Mutex // Mutex to synchronize access to reports slice
 )
 
-var jsonResp Goauth
-
-var filterOrder string
-var filterType string
-var filterSubject string
-var filterOther string
+// Global variables for filtering criteria
+var (
+	jsonResp      Goauth // Google OAuth response
+	filterOrder   string // Order by criteria for filtering
+	filterType    string // Type criteria for filtering
+	filterSubject string // Subject criteria for filtering
+	filterOther   string // Other criteria for filtering
+)
 
 func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
@@ -872,34 +881,8 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/*
-	 func (h *RegisterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-		h.db, h.dbInitErr = sql.Open("sqlite3", "./forumv3.db")
-		if h.dbInitErr != nil {
-			http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
-			return
-		}
-
-		if r.URL.Path == "/" {
-			if r.Method == "GET" {
-				tmpl, err := template.ParseFiles("register.html")
-				if err != nil {
-					http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
-					return
-				}
-				tmpl.Execute(w, nil)
-				return
-			} else if r.Method == "POST" {
-				h.processRegistration(w, r)
-				return
-			}
-		}
-		http.NotFound(w, r)
-	}
-*/
-
 func (u *User) postHandler(w http.ResponseWriter, r *http.Request) {
-	// Récupérer l'ID du post depuis la requête
+	// Retrieve the post ID from the request
 	idStr := r.URL.Query().Get("id")
 	if idStr == "" {
 		http.Error(w, "Bad request", http.StatusBadRequest)
@@ -912,34 +895,37 @@ func (u *User) postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Charger les détails du post depuis la base de données
+	// Load post details from the database
 	var post Post
 	db, err := sql.Open("sqlite3", "./forumv3.db")
 	if err != nil {
-		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 	defer db.Close()
-	err = db.QueryRow("SELECT posts_title, posts_description, posts_profile_picture, category_name, posts_nblike, posts_nbdislike FROM posts WHERE posts_id=?", id).Scan(&post.Title, &post.Description, &post.Base64Image, &post.CategoryName, &post.Nblike, &post.Nbdislike)
+	err = db.QueryRow("SELECT posts_title, posts_description, posts_profile_picture, category_name, posts_nblike, posts_nbdislike FROM posts WHERE posts_id=?", id).
+		Scan(&post.Title, &post.Description, &post.Base64Image, &post.CategoryName, &post.Nblike, &post.Nbdislike)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "Aucun post trouvé avec cet ID", http.StatusNotFound)
+			http.Error(w, "No post found with this ID", http.StatusNotFound)
 			return
 		}
-		log.Printf("Erreur lors de la récupération des informations du post: %v", err)
-		http.Error(w, "Erreur lors de la récupération des informations du post", http.StatusInternalServerError)
+		log.Printf("Error retrieving post information: %v", err)
+		http.Error(w, "Error retrieving post information", http.StatusInternalServerError)
 		return
 	}
 	post.ID = id
-	post.Comments = getComments(w, r, id)
+	post.Comments = getComments(w, r, id) // Get comments associated with the post
 
+	// Retrieve user session information
 	session, err := store.Get(r, "userSession")
 	if err != nil {
-		log.Printf("Erreur lors de la récupération de la session: %v", err)
-		http.Error(w, "Erreur de session", http.StatusInternalServerError)
+		log.Printf("Error retrieving session: %v", err)
+		http.Error(w, "Session error", http.StatusInternalServerError)
 		return
 	}
 
+	// Check if userID exists in the session values
 	userID, ok := session.Values["userID"].(int)
 	if !ok {
 		post.Liked = false
@@ -947,45 +933,35 @@ func (u *User) postHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		var exists bool
 
-		// Query to check if a row with id = 1 exists
+		// Check if the user has liked the post
 		query := "SELECT EXISTS(SELECT 1 FROM postslikes WHERE post_id = ? AND user_id = ?)"
 		err = db.QueryRow(query, post.ID, userID).Scan(&exists)
 		if err != nil {
 			panic(err)
 		}
+		post.Liked = exists
 
-		if exists {
-			post.Liked = true
-		} else {
-			post.Liked = false
-		}
-
+		// Check if the user has disliked the post
 		query = "SELECT EXISTS(SELECT 1 FROM postsdislikes WHERE post_id = ? AND user_id = ?)"
 		err = db.QueryRow(query, post.ID, userID).Scan(&exists)
 		if err != nil {
 			panic(err)
 		}
-
-		if exists {
-			post.Disliked = true
-		} else {
-			post.Disliked = false
-		}
-
+		post.Disliked = exists
 	}
 
-	// Préparer les données à envoyer au template
+	// Prepare data to send to the template
 	tmpl, err := template.ParseFiles("uniquePost.html")
 	if err != nil {
-		log.Printf("Erreur lors de l'analyse du template: %v", err)
-		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		log.Printf("Error parsing template: %v", err)
+		http.Error(w, "Server error", http.StatusInternalServerError)
 		return
 	}
 
+	// Retrieve the current user ID from the request
 	var idUSER int
 	idUSER, err = getUserIdFromRequest(r)
 	if err != nil {
-
 		data := struct {
 			Post    Post
 			IsAdmin bool
@@ -994,7 +970,7 @@ func (u *User) postHandler(w http.ResponseWriter, r *http.Request) {
 			IsAdmin: false,
 		}
 
-		// Exécuter le template avec les données
+		// Execute the template with the data
 		tmpl.Execute(w, data)
 		return
 	} else {
@@ -1009,12 +985,11 @@ func (u *User) postHandler(w http.ResponseWriter, r *http.Request) {
 			IsAdmin: u.Role == "admin" || u.Role == "moderator",
 		}
 
-		// Exécuter le template avec les données
+		// Execute the template with the data
 		tmpl.Execute(w, data)
-
 	}
-
 }
+
 func categoryHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 	if idStr == "" {
@@ -1060,14 +1035,15 @@ func categoryHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *User) createComment(w http.ResponseWriter, r *http.Request) {
-
+	// Retrieve user session
 	session, err := store.Get(r, "userSession")
 	if err != nil {
-		log.Printf("Erreur lors de la récupération de la session: %v", err)
-		http.Error(w, "Erreur de session", http.StatusInternalServerError)
+		log.Printf("Error retrieving session: %v", err)
+		http.Error(w, "Session error", http.StatusInternalServerError)
 		return
 	}
 
+	// Retrieve user information from session
 	userID, ok := session.Values["userID"].(int)
 	if !ok {
 		http.Error(w, "You are not connected", http.StatusInternalServerError)
@@ -1091,11 +1067,14 @@ func (u *User) createComment(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "You are not connected", http.StatusInternalServerError)
 		return
 	}
+
+	// Assign user session values to the current User struct instance
 	u.ID = userID
 	u.Email = userEmail
 	u.Base64Image = userProfilePicture
 	u.Username = userName
 
+	// Retrieve post ID from URL query parameter
 	idStr := r.URL.Query().Get("id")
 	if idStr == "" {
 		http.Error(w, "Bad request", http.StatusBadRequest)
@@ -1108,102 +1087,109 @@ func (u *User) createComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Open database connection
 	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
 	if dbInitErr != nil {
-		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
+	defer db.Close()
 
+	// Parse form and handle file upload (optional)
 	err = r.ParseMultipartForm(20 << 20) // 20 MB max file size
 	if err != nil {
-		log.Printf("Erreur lors du parsing du formulaire: %v", err)
-		http.Error(w, "Erreur lors du parsing du formulaire", http.StatusInternalServerError)
+		log.Printf("Error parsing form: %v", err)
+		http.Error(w, "Error parsing form", http.StatusInternalServerError)
 		return
 	}
-	r.ParseMultipartForm(20 << 20) // 20 MB max file size
 
+	// Retrieve comment message from form value
 	message := r.FormValue("message")
 
+	// Retrieve optional file attachment (not fully implemented in provided code)
 	file, _, err := r.FormFile("response-attachment")
-
 	if err == nil {
 		buf := bytes.NewBuffer(nil)
 		if _, err := io.Copy(buf, file); err != nil {
-			http.Error(w, "Erreur lors de la lecture du fichier", http.StatusInternalServerError)
+			http.Error(w, "Error reading file", http.StatusInternalServerError)
 			return
 		}
 	}
 
-	// Insérer l'utilisateur dans la base de données
+	// Insert comment into the database
 	stmt, err := db.Prepare("INSERT INTO comments2(comments2_text, comments2_post_id, comments2_author_id) VALUES(?, ?, ?)")
 	if err != nil {
-		http.Error(w, "Erreur lors de la préparation de la requête", http.StatusInternalServerError)
+		http.Error(w, "Error preparing query", http.StatusInternalServerError)
 		return
 	}
 	defer stmt.Close()
 
 	_, err = stmt.Exec(message, post_id, u.ID)
 	if err != nil {
-		http.Error(w, "Erreur lors de l'exécution de la requête", http.StatusInternalServerError)
+		http.Error(w, "Error executing query", http.StatusInternalServerError)
 		return
 	}
 
+	// Update the post's comment count in the database
 	_, err = db.Exec("UPDATE posts SET posts_nbcomment = posts_nbcomment + 1 WHERE posts_id = ?", post_id)
 	if err != nil {
-		log.Printf("Erreur de serveur: %v", err)
-		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		log.Printf("Server error: %v", err)
+		http.Error(w, "Server error", http.StatusInternalServerError)
 		return
 	}
-	// Utilisez le message comme vous le souhaitez ici...
+
+	// Redirect to the post after comment creation
 	url := fmt.Sprintf("http://localhost:5500/post?id=%v ", post_id)
-
 	http.Redirect(w, r, url, http.StatusSeeOther)
-
 }
 
 func (u *User) processLogin(w http.ResponseWriter, r *http.Request) {
+	// Open database connection
 	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
 	if dbInitErr != nil {
-		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 	defer db.Close()
 
+	// Parse form and handle file upload (optional)
 	r.ParseMultipartForm(20 << 20) // 20 MB max file size
 
+	// Retrieve email and password from form values
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 	motDePasse := []byte(password)
 
 	var mdpHache string
+	// Retrieve hashed password from the database
 	db.QueryRow("SELECT password FROM users WHERE email=? AND auth_provider = 'website'", email).Scan(&mdpHache)
 
-	// Convertir le mot de passe en clair en bytes
-
-	// Comparer le mot de passe en clair avec le mot de passe haché
+	// Compare the plain text password with the hashed password
 	err := bcrypt.CompareHashAndPassword([]byte(mdpHache), motDePasse)
 	if err != nil {
-		// Si les mots de passe ne correspondent pas
-		http.Error(w, "Mot de passe incorrect", http.StatusUnauthorized)
+		// If passwords do not match, unauthorized access
+		http.Error(w, "Incorrect password", http.StatusUnauthorized)
 		return
 	}
 
-	err = db.QueryRow("SELECT user_id, username, email FROM users WHERE email=? AND password=? AND auth_provider = 'website'", email, mdpHache).Scan(&u.ID, &u.Username, &u.Email)
+	// Retrieve user ID, username, and email from the database
+	err = db.QueryRow("SELECT user_id, username, email FROM users WHERE email=? AND password=? AND auth_provider = 'website'", email, mdpHache).
+		Scan(&u.ID, &u.Username, &u.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			http.Error(w, "Aucun utilisateur trouvé avec cet ID", http.StatusNotFound)
+			http.Error(w, "No user found with this ID", http.StatusNotFound)
 			return
 		}
-		log.Printf("Erreur lors de la récupération des informations de l'utilisateur: %v", err)
-		http.Error(w, "Erreur lors de la récupération des informations de l'utilisateur", http.StatusInternalServerError)
+		log.Printf("Error retrieving user information: %v", err)
+		http.Error(w, "Error retrieving user information", http.StatusInternalServerError)
 		return
 	}
 
-	// Sauvegarder l'ID de l'utilisateur dans la session
+	// Save user ID in the session
 	session, err := store.Get(r, "userSession")
 	if err != nil {
-		log.Printf("Erreur lors de la récupération de la session: %v", err)
-		http.Error(w, "Erreur de session", http.StatusInternalServerError)
+		log.Printf("Error retrieving session: %v", err)
+		http.Error(w, "Session error", http.StatusInternalServerError)
 		return
 	}
 
@@ -1213,29 +1199,31 @@ func (u *User) processLogin(w http.ResponseWriter, r *http.Request) {
 	session.Values["userName"] = u.Username
 	session.Values["role"] = u.Role
 
-	// Définir l'expiration de la session
+	// Set session expiration
 	session.Options = &sessions.Options{
 		Path:     "/",
-		MaxAge:   int(sessionExpiration.Seconds()), // Durée en secondes
-		HttpOnly: true,                             // Pour des raisons de sécurité
+		MaxAge:   int(sessionExpiration.Seconds()), // in seconds
+		HttpOnly: true,                             // for security reasons
 	}
 
-	//Set a cookie with the user's ID
+	// Set a cookie with the user's ID
 	cookie := &http.Cookie{
 		Name:     "user_id",
 		Value:    strconv.Itoa(u.ID),
 		Path:     "/",
-		MaxAge:   int(sessionExpiration.Seconds()), //same expiration as the session
+		MaxAge:   int(sessionExpiration.Seconds()), // same expiration as the session
 		HttpOnly: true,
 	}
 	http.SetCookie(w, cookie)
 
 	err = session.Save(r, w)
 	if err != nil {
-		log.Printf("Erreur lors de la sauvegarde de la session: %v", err)
-		http.Error(w, "Erreur lors de la sauvegarde de la session", http.StatusInternalServerError)
+		log.Printf("Error saving session: %v", err)
+		http.Error(w, "Error saving session", http.StatusInternalServerError)
 		return
 	}
+
+	// Redirect to the user's profile page after successful login
 	http.Redirect(w, r, "/profile", http.StatusSeeOther)
 }
 
