@@ -2,10 +2,8 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"database/sql"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
@@ -20,8 +18,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	_ "github.com/mattn/go-sqlite3"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Clé de chiffrement pour les cookies de session
@@ -78,10 +75,6 @@ type Comment struct {
 	Base64Image string
 }
 
-type App struct {
-	config *oauth2.Config
-}
-
 type Goauth struct {
 	Id            string `json:"id"`
 	Email         string `json:"email"`
@@ -112,35 +105,6 @@ var filterType string
 var filterSubject string
 var filterOther string
 
-func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/login/oauth" {
-		if r.Method == "GET" {
-			url := a.config.AuthCodeURL("state", oauth2.AccessTypeOffline)
-			http.Redirect(w, r, url, http.StatusTemporaryRedirect)
-		}
-	}
-	if r.URL.Path == "/callback" {
-		if r.Method == "GET" {
-			code := r.URL.Query().Get("code")
-
-			t, err := a.config.Exchange(context.Background(), code)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-
-			client := a.config.Client(context.Background(), t)
-			resp, _ := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
-
-			if err = json.NewDecoder(resp.Body).Decode(&jsonResp); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-			}
-			u := new(User)
-			u.processLoginGoogle(w, r, jsonResp)
-
-		}
-	}
-}
 func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	session, err := store.Get(r, "userSession")
@@ -1206,69 +1170,6 @@ func (u *User) createComment(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (u *User) processLoginGoogle(w http.ResponseWriter, r *http.Request, googleInfo Goauth) {
-	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
-	if dbInitErr != nil {
-		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
-		return
-	}
-	defer db.Close()
-
-	err := db.QueryRow("SELECT user_id, username, email, profile_picture FROM users WHERE email=? AND auth_provider = 'google'", googleInfo.Email).Scan(&u.ID, &u.Username, &u.Email, &u.Base64Image)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			/* http.Error(w, "Aucun utilisateur trouvé avec cet ID", http.StatusNotFound)
-			return */
-
-			u.processRegistrationGoogle(w, r, googleInfo.Email, googleInfo.Name, googleInfo.Picture)
-
-		}
-		log.Printf("Erreur lors de la récupération des informations de l'utilisateur: %v", err)
-		http.Error(w, "Erreur lors de la récupération des informations de l'utilisateur", http.StatusInternalServerError)
-		return
-	}
-
-	session, err := store.Get(r, "userSession")
-	if err != nil {
-		log.Printf("Erreur lors de la récupération de la session: %v", err)
-		http.Error(w, "Erreur de session", http.StatusInternalServerError)
-		return
-	}
-
-	session.Values["userID"] = u.ID
-	session.Values["userEmail"] = u.Email
-	session.Values["userProfile_Picture"] = u.Base64Image
-	session.Values["userName"] = u.Username
-	session.Values["role"] = u.Role
-
-	fmt.Println("Logged in user ID:", session.Values["userID"])
-
-	// Définir l'expiration de la session
-	session.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   int(sessionExpiration.Seconds()), // Durée en secondes
-		HttpOnly: true,                             // Pour des raisons de sécurité
-	}
-
-	err = session.Save(r, w)
-	if err != nil {
-		log.Printf("Erreur lors de la sauvegarde de la session: %v", err)
-		http.Error(w, "Erreur lors de la sauvegarde de la session", http.StatusInternalServerError)
-		return
-	}
-	cookie := &http.Cookie{
-		Name:     "user_id",
-		Value:    strconv.Itoa(u.ID),
-		Path:     "/",
-		MaxAge:   int(sessionExpiration.Seconds()), //same expiration as the session
-		HttpOnly: true,
-	}
-	http.SetCookie(w, cookie)
-
-	http.Redirect(w, r, "/profile", http.StatusSeeOther)
-}
-
 func (u *User) processLogin(w http.ResponseWriter, r *http.Request) {
 	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
 	if dbInitErr != nil {
@@ -1281,7 +1182,22 @@ func (u *User) processLogin(w http.ResponseWriter, r *http.Request) {
 
 	email := r.FormValue("email")
 	password := r.FormValue("password")
-	err := db.QueryRow("SELECT user_id, username, email FROM users WHERE email=? AND password=? AND auth_provider = 'website'", email, password).Scan(&u.ID, &u.Username, &u.Email)
+	motDePasse := []byte(password)
+
+	var mdpHache string
+	db.QueryRow("SELECT password FROM users WHERE email=? AND auth_provider = 'website'", email).Scan(&mdpHache)
+
+	// Convertir le mot de passe en clair en bytes
+
+	// Comparer le mot de passe en clair avec le mot de passe haché
+	err := bcrypt.CompareHashAndPassword([]byte(mdpHache), motDePasse)
+	if err != nil {
+		// Si les mots de passe ne correspondent pas
+		http.Error(w, "Mot de passe incorrect", http.StatusUnauthorized)
+		return
+	}
+
+	err = db.QueryRow("SELECT user_id, username, email FROM users WHERE email=? AND password=? AND auth_provider = 'website'", email, mdpHache).Scan(&u.ID, &u.Username, &u.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Aucun utilisateur trouvé avec cet ID", http.StatusNotFound)
@@ -1400,6 +1316,16 @@ func (u *User) processRegistration(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	email := r.FormValue("email")
 	password := r.FormValue("password")
+	// Mot de passe en clair
+	motDePasse := []byte(password)
+
+	// Génération d'un sel et hachage du mot de passe avec le sel
+	motDePasseHache, err := bcrypt.GenerateFromPassword(motDePasse, bcrypt.DefaultCost)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	password = string(motDePasseHache)
 
 	file, _, err := r.FormFile("profile_picture")
 	if err != nil {
@@ -1996,18 +1922,6 @@ func (u *User) createCategory(w http.ResponseWriter, r *http.Request) {
 
 }
 func main() {
-	clientId := "205949073068-pgfqbsm6h9bahpgaq505o8k7a7iidhcr.apps.googleusercontent.com"
-	clientSecret := "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"
-
-	conf := &oauth2.Config{
-		ClientID:     clientId,
-		ClientSecret: clientSecret,
-		RedirectURL:  "http://localhost:5500/callback",
-		Scopes:       []string{"email", "profile"},
-		Endpoint:     google.Endpoint,
-	}
-
-	app := App{config: conf}
 
 	fs := http.FileServer(http.Dir("public"))
 	http.Handle("/public/", http.StripPrefix("/public/", fs))
@@ -2016,8 +1930,6 @@ func main() {
 	http.Handle("/signin", new(User))
 	http.Handle("/profile", new(User))
 	http.Handle("/login", new(User))
-	http.Handle("/login/oauth", &app) // Utilisation d'&app pour gérer les routes OAuth
-	http.Handle("/callback", &app)    // Utilisation d'&app pour gérer les callbacks OAuth
 	http.Handle("/logout", new(User))
 	http.Handle("/posts", new(User))
 	http.Handle("/post", new(User))
@@ -2084,7 +1996,7 @@ func submitReportHandler(w http.ResponseWriter, r *http.Request) {
 	reports = append(reports, report)
 	reportsLock.Unlock()
 
-	http.Redirect(w, r, "/view-reports", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 // Fonction pour extraire l'ID du post de l'URL
@@ -2104,16 +2016,6 @@ func extractPostIDFromURL(postURL string) (int, error) {
 }
 
 func viewReportsHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("viewReports.html")
-	if err != nil {
-		log.Printf("Erreur lors de l'analyse du template: %v", err)
-		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
-		return
-	}
-
-	reportsLock.Lock()
-	defer reportsLock.Unlock()
-
 	// Récupérer l'ID de l'utilisateur depuis le cookie
 	idUSER, err := getUserIdFromRequest(r)
 	if err != nil {
@@ -2129,6 +2031,20 @@ func viewReportsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Erreur lors de la récupération des informations de l'utilisateur", http.StatusInternalServerError)
 		return
 	}
+
+	if currentUser.Role != "admin" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	}
+
+	tmpl, err := template.ParseFiles("viewReports.html")
+	if err != nil {
+		log.Printf("Erreur lors de l'analyse du template: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+
+	reportsLock.Lock()
+	defer reportsLock.Unlock()
 
 	// Préparer les données à envoyer au template
 	type TemplateData struct {
