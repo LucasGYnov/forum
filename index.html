@@ -163,6 +163,44 @@
          </section>
       </main>
       <!-- Modals / Pop-ups -->
+      <div id="reportModal" class="modal">
+         <div class="modal-content">
+             <span class="close" onclick="closeModal()">&times;</span>
+             <h2>Signaler ce contenu</h2>
+             <form action="/submit-report" method="POST">
+                 <!-- Raison du signalement -->
+                 <div class="input-group">
+                     <label for="report-reason">Raison:</label>
+                     <select id="report-reason" name="report-reason">
+                         <option value="">Sélectionnez une raison</option>
+                         <option value="spam">Spam</option>
+                         <option value="harassment">Harcèlement</option>
+                         <option value="inappropriate">Contenu inapproprié</option>
+                         <option value="other">Autre</option>
+                     </select>
+                 </div>
+                 
+                 <!-- Lien du post signalé -->
+                 <div class="input-group">
+                     <label for="post-url">Lien du post:</label>
+                     <input type="text" id="post-url" name="post-url" placeholder="URL du post/catégorie/Compte">
+                 </div>
+                 
+                 <!-- Commentaire -->
+                 <div id="comment-section" style="display:none;">
+                     <label for="report-comment">Commentaire:</label>
+                     <textarea id="report-comment" name="report-comment" rows="4" cols="50">Signalé par un utilisateur</textarea>
+                 </div>
+         
+                 <button type="submit">Envoyer</button>
+             </form>
+         </div>
+     </div>
+     
+     
+     
+     
+
       <div id="filters-modal" class="modal">
          <div class="modal-content">
             <span class="close">&times;</span>
@@ -217,6 +255,8 @@
             </form>
          </div>
       </div>
+
+      
       <div id="add-post-modal" class="modal">
          <div class="modal-content">
             
@@ -282,6 +322,7 @@
 
          </div>
       </div>
+     
       <!-- Footer -->
       <footer class="footer">
          <!-- Contenu du footer -->
@@ -296,7 +337,7 @@
          <div class="footer-section">
             <h3>Administration</h3>
             <ul>
-               <li><a href="#">Signaler un post, topic, compte</a></li>
+               <li><a href="#" onclick="openModal()">Signaler un post, topic, compte</a></li>
                <li><a href="#">Demande de promotion</a></li>
             </ul>
          </div>
@@ -372,5 +413,51 @@
             leftClick(); // Default to "Post" form on modal load
          });
       </script>
+      <script>
+         // Initialisation de Quill
+         var quill = new Quill('#editor-container', {
+             theme: 'snow',
+             modules: {
+                 toolbar: [
+                     [{ 'font': [] }, { 'size': [] }],
+                     ['bold', 'italic', 'underline', 'strike'],
+                     [{ 'color': [] }, { 'background': [] }],
+                     [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                     [{ 'indent': '-1' }, { 'indent': '+1' }],
+                     [{ 'align': [] }],
+                     ['clean']
+                 ]
+             }
+         });
+
+         // Envoi du contenu Quill dans un champ caché
+         document.querySelector('form').addEventListener('submit', function() {
+             var editorContent = quill.root.innerHTML;
+             document.getElementById('hidden-message').value = editorContent;
+         });
+
+         // Fonction pour faire défiler jusqu'au formulaire de réponse
+         function scrollToResponseForm() {
+             document.getElementById('response-form').scrollIntoView({ behavior: 'smooth' });
+         }
+
+         // Ouvrir le modal
+         function openModal() {
+             document.getElementById('reportModal').style.display = 'block';
+         }
+
+         // Fermer le modal
+         function closeModal() {
+             document.getElementById('reportModal').style.display = 'none';
+         }
+
+         // Fermer le modal en cliquant en dehors de celui-ci
+         window.onclick = function(event) {
+             if (event.target == document.getElementById('reportModal')) {
+                 document.getElementById('reportModal').style.display = 'none';
+             }
+         }
+
+     </script>
    </body>
 </html>

@@ -113,6 +113,39 @@
 
 
     </main>
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Signaler ce contenu</h2>
+            <form action="/submit-report" method="POST">
+                <!-- Raison du signalement -->
+                <div class="input-group">
+                    <label for="report-reason">Raison:</label>
+                    <select id="report-reason" name="report-reason">
+                        <option value="">Sélectionnez une raison</option>
+                        <option value="spam">Spam</option>
+                        <option value="harassment">Harcèlement</option>
+                        <option value="inappropriate">Contenu inapproprié</option>
+                        <option value="other">Autre</option>
+                    </select>
+                </div>
+                
+                <!-- Lien du post signalé -->
+                <div class="input-group">
+                    <label for="post-url">Lien du post:</label>
+                    <input type="text" id="post-url" name="post-url" placeholder="URL du post/catégorie/Compte">
+                </div>
+                
+                <!-- Commentaire -->
+                <div id="comment-section" style="display:none;">
+                    <label for="report-comment">Commentaire:</label>
+                    <textarea id="report-comment" name="report-comment" rows="4" cols="50">Signalé par un utilisateur</textarea>
+                </div>
+        
+                <button type="submit">Envoyer</button>
+            </form>
+        </div>
+    </div>
     <!-- Modals / Pop-ups -->
     <div id="emailModal" class="modal">
         <div class="modal-content">

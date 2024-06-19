@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Signalements</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Signalements</h1>
+    <table>
+        <tr>
+            <th>ID du Post</th>
+            <th>Raison</th>
+            <th>Commentaire</th>
+            <th>Action</th>
+        </tr>
+        {{range .Reports}}
+        {{if eq .Status "active"}}
+        <tr>
+            <td>{{.PostID}}</td>
+            <td>{{.Reason}}</td>
+            <td>{{.Comment}}</td>
+            <td>
+                <form action="/delete-post" method="POST" style="display:inline;">
+                    <input type="hidden" name="post-id" value="{{.PostID}}">
+                    <button type="submit">Supprimer le Post</button>
+                </form>
+                <form action="/ignore-report" method="POST" style="display:inline;">
+                    <input type="hidden" name="post-id" value="{{.PostID}}">
+                    <button type="submit">Ignorer</button>
+                </form>
+            </td>
+        </tr>
+        {{end}}
+        {{end}}
+    </table>
+</body>
+</html>

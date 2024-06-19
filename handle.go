@@ -12,8 +12,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"path"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gorilla/sessions"
@@ -90,6 +92,18 @@ type Goauth struct {
 	Picture       string `json:"picture"`
 	Locale        string `json:"locale"`
 }
+
+type Report struct {
+	PostID  int
+	Reason  string
+	Comment string
+	Status  string
+}
+
+var (
+	reports     []Report
+	reportsLock sync.Mutex
+)
 
 var jsonResp Goauth
 
@@ -1419,18 +1433,20 @@ func (u *User) processRegistration(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
-func (u *User) loadUserFromDB(userID int) {
-	db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
-	if dbInitErr != nil {
-		log.Printf("Erreur de base de données: %v", dbInitErr)
-		return
+func (u *User) loadUserFromDB(userID int) error {
+	db, err := sql.Open("sqlite3", "./forumv3.db")
+	if err != nil {
+		return err
 	}
 	defer db.Close()
 
-	err := db.QueryRow("SELECT username, email, profile_picture, role FROM users WHERE user_id=?", userID).Scan(&u.Username, &u.Email, &u.Image, &u.Role)
+	err = db.QueryRow("SELECT username, role FROM users WHERE user_id=?", userID).Scan(&u.Username, &u.Role)
 	if err != nil {
-		log.Printf("Erreur lors de la récupération des informations de l'utilisateur: %v", err)
+		return err
 	}
+
+	u.ID = userID
+	return nil
 }
 
 func (u *User) handleUser(w http.ResponseWriter, r *http.Request) {
@@ -2006,10 +2022,13 @@ func main() {
 	http.Handle("/posts", new(User))
 	http.Handle("/post", new(User))
 	http.Handle("/user-profile", new(User))
+	http.HandleFunc("/submit-report", submitReportHandler)
+	http.HandleFunc("/view-reports", viewReportsHandler)
+	http.HandleFunc("/delete-post", deletePostHandler)
+	http.HandleFunc("/ignore-report", ignoreReportHandler)
 
 	log.Fatal(http.ListenAndServe(":5500", nil))
 }
-
 func getUserIdFromRequest(r *http.Request) (int, error) {
 
 	cookie, err := r.Cookie("user_id")
@@ -2022,4 +2041,182 @@ func getUserIdFromRequest(r *http.Request) (int, error) {
 	}
 	return id, nil
 
+}
+
+func submitReportHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var postID int
+	var err error
+
+	// Vérifier si post-id est disponible (version avec champ caché dans uniquePost.html)
+	if postIDStr := r.FormValue("post-id"); postIDStr != "" {
+		postID, err = strconv.Atoi(postIDStr)
+		if err != nil {
+			http.Error(w, "Invalid post ID", http.StatusBadRequest)
+			return
+		}
+	} else {
+		// Sinon, extraire l'ID du post à partir de post-url (version avec champ post-url dans index.html)
+		postURL := r.FormValue("post-url")
+		postID, err = extractPostIDFromURL(postURL)
+		if err != nil {
+			http.Error(w, "Invalid post ID", http.StatusBadRequest)
+			return
+		}
+	}
+
+	reason := r.FormValue("report-reason")
+	comment := r.FormValue("report-comment")
+
+	report := Report{
+		PostID:  postID,
+		Reason:  reason,
+		Comment: comment,
+		Status:  "active",
+	}
+
+	// Exemple de gestion des rapports (à adapter selon votre application)
+	reportsLock.Lock()
+	reports = append(reports, report)
+	reportsLock.Unlock()
+
+	http.Redirect(w, r, "/view-reports", http.StatusSeeOther)
+}
+
+// Fonction pour extraire l'ID du post de l'URL
+func extractPostIDFromURL(postURL string) (int, error) {
+	u, err := url.Parse(postURL)
+	if err != nil {
+		return 0, err
+	}
+
+	idStr := u.Query().Get("id")
+	postID, err := strconv.Atoi(idStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return postID, nil
+}
+
+func viewReportsHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl, err := template.ParseFiles("viewReports.html")
+	if err != nil {
+		log.Printf("Erreur lors de l'analyse du template: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+
+	reportsLock.Lock()
+	defer reportsLock.Unlock()
+
+	// Récupérer l'ID de l'utilisateur depuis le cookie
+	idUSER, err := getUserIdFromRequest(r)
+	if err != nil {
+		http.Error(w, "Erreur : utilisateur non connecté", http.StatusUnauthorized)
+		return
+	}
+
+	// Charger les informations de l'utilisateur depuis la base de données
+	var currentUser User
+	err = currentUser.loadUserFromDB(idUSER)
+	if err != nil {
+		log.Printf("Erreur lors du chargement des informations de l'utilisateur: %v", err)
+		http.Error(w, "Erreur lors de la récupération des informations de l'utilisateur", http.StatusInternalServerError)
+		return
+	}
+
+	// Préparer les données à envoyer au template
+	type TemplateData struct {
+		Username string
+		Role     string
+		Reports  []Report // Assurez-vous de passer vos rapports ici
+	}
+
+	data := TemplateData{
+		Username: currentUser.Username,
+		Role:     currentUser.Role,
+		Reports:  reports, // Remplacez par votre slice de rapports
+	}
+
+	// Exécuter le template avec les données
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		log.Printf("Erreur lors de l'exécution du template: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+}
+
+func deletePostHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	postID, err := strconv.Atoi(r.FormValue("post-id"))
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Printf("Suppression du post avec ID: %d\n", postID)
+
+	// Supprimer le post de la base de données
+	db, err := sql.Open("sqlite3", "./forumv3.db")
+	if err != nil {
+		http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	// Supprimer le post
+	_, err = db.Exec("DELETE FROM posts WHERE posts_id = ?", postID)
+	if err != nil {
+		log.Printf("Erreur lors de la suppression du post: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+
+	// Supprimer les signalements associés
+	reportsLock.Lock()
+	for i, report := range reports {
+		if report.PostID == postID {
+			reports = append(reports[:i], reports[i+1:]...)
+			break
+		}
+	}
+	reportsLock.Unlock()
+
+	http.Redirect(w, r, "/view-reports", http.StatusSeeOther)
+}
+
+func ignoreReportHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	postID, err := strconv.Atoi(r.FormValue("post-id"))
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Printf("Ignorer le signalement pour le post avec ID: %d\n", postID)
+
+	reportsLock.Lock()
+	for i, report := range reports {
+		if report.PostID == postID {
+			reports[i].Status = "ignored"
+			break
+		}
+	}
+	reportsLock.Unlock()
+
+	http.Redirect(w, r, "/view-reports", http.StatusSeeOther)
 }
