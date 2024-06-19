@@ -230,7 +230,7 @@
         <div class="modal-content">
            <span class="close">&times;</span>
            <h2>Filtrer les résultats</h2>
-           <form id="filters-form"  action="http://localhost:5500/apply-filters" method="POST">
+           <form id="filters-form">
               <div class="filters-container">
                  <!-- Première colonne -->
                  <div class="filters-column">
@@ -244,8 +244,6 @@
                           <option value="least-likes">Le moins de likes</option>
                           <option value="most-interactions">Le plus d'interactions</option>
                           <option value="least-interactions">Le moins d'interactions</option>
-                          <option value="you liked">Vous avez liké</option>
-
                        </select>
                     </div>
                     <h3>Type de recherche</h3>
@@ -265,9 +263,9 @@
                     <div class="input-group">
                        <label for="filter-subject">Sujet:</label>
                        <select id="filter-subject" name="filter-subject">
-                          <option value="">Sélectionner un sujet</option>
-                          <option value="sujet1">Sujet 1</option>
-                          <option value="sujet2">Sujet 2</option>
+                          {{range .Categories}}
+                             <option value={{.Title}}>{{.Title}}</option>
+                          {{end}}
                           <!-- Ajouter d'autres sujets ici -->
                        </select>
                     </div>
