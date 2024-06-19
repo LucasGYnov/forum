@@ -149,7 +149,7 @@
      
                              <button type="submit" class="like-button" data-disliked="{{.Disliked}}" >
                                  <label for="dislike-{{.ID}}">
-                                     <input type="checkbox" name="evaluation" id="dislike-{{.ID}}"  value="dislike"   {{if .Disliked}} checked {{end}} />
+                                     <input type="checkbox" name="evaluationDislike" id="dislike-{{.ID}}"  value="dislike"   {{if .Disliked}} checked {{end}} />
                                      <svg class="icon dislike" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                          viewBox="0 0 24 24">
                                          <path
@@ -160,11 +160,10 @@
                                      </svg>
                                  </label>
                              </button>
-                             <input type="hidden" name="evaluation" value="{{if .Disliked}}dislike{{else}}dropdislike{{end}}">
      
                              <button type="submit" class="like-button" data-liked="{{.Liked}}">
                                  <label for="like-{{.ID}}">
-                                     <input type="checkbox" name="evaluation" id="like-{{.ID}}" value="{{if .Liked}}like{{else}}droplike{{end}}" {{if .Liked}} checked {{end}}  />
+                                     <input type="checkbox" name="evaluationLike" id="like-{{.ID}}" value="like" {{if .Liked}} checked {{end}}  />
                                      <svg class="icon like" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                          viewBox="0 0 24 24">
                                          <path
@@ -175,7 +174,6 @@
                                      </svg>
                                  </label>
                              </button>
-                             <input type="hidden" name="evaluation" value="{{if .Liked}}like{{else}}droplike{{end}}">
 
                          </form>
                          <div class="countlike">

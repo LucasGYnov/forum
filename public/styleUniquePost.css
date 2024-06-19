@@ -201,3 +201,114 @@
     cursor: pointer;
     font-size: 24px;
 }
+.like-button {
+    position: relative;
+    background: none;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    z-index: 10; 
+
+
+    
+}
+.like-button-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    background-color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+.like-form{
+    position: relative;
+    z-index: 10; 
+    width: 40px;
+    height: 40px;
+    
+
+}
+.container {
+    margin-top: 100px;
+    margin-right: 100px;
+  
+    --col-like: #2196f3;
+    --col-dislike: #ff3232;
+    --transition: 350ms;
+    background-color: var(--col-gray);
+    width: 130px;
+    height: 50px;
+    border-radius: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px;
+    user-select: none;
+    /*you can easlly change the number by using this variabels*/
+    --zero: translateY(calc(50% - 11px));
+    --one: translateY(calc(40% - 11px));
+    --two: translateY(calc(30% - 11px));
+    --three: translateY(calc(20% - 11px));
+    --four: translateY(calc(10% - 11px));
+    --five: translateY(calc(0% - 11px));
+    --six: translateY(calc(-10% - 11px));
+    --seven: translateY(calc(-20% - 11px));
+    --eight: translateY(calc(-30% - 11px));
+    --nine: translateY(calc(-40% - 11px));
+    --ten: translateY(calc(-50% - 11px));
+  }
+  
+  .container label input {
+    display: none;
+  }
+  .container input[id^="like-"]:checked + svg {
+    animation: evaluation-animation var(--transition) ease-in-out 0s 1 normal both;
+    fill: var(--col-like);
+  }
+  .container input[id^="dislike-"]:checked + svg {
+    animation: evaluation-animation var(--transition) ease-in-out 0s 1 normal both;
+    fill: var(--col-dislike);
+  }
+  .container .icon {
+    cursor: pointer;
+    fill: var(--col-white);
+    height: 24px;
+    width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .container .icon.like {
+    margin-left: 9px;
+  }
+  .container .icon.dislike {
+    margin-right: 9px;
+  }
+  .container .countlike {
+    flex: 1;
+    border-left: 1px solid var(--col-white);
+    border-right: 1px solid var(--col-white);
+    position: relative;
+    height: 24px;
+    margin: auto;
+    color: rgb(0, 0, 0);
+    font-family: sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5px;
+    flex-direction: row;
+  }
+  @keyframes evaluation-animation {
+  0%, 100% {
+      transform: scale(1) rotate(0deg);
+  }
+  50% {
+      transform: scale(1.1) rotate(-10deg);
+  }
+}

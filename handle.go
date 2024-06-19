@@ -374,11 +374,87 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			userID, ok := session.Values["userID"].(int)
 			if ok && userID > 0 {
 
-				evaluation := r.FormValue("evaluation")
-				postID := r.FormValue("post_id")
-				fmt.Println(postID, evaluation, userID)
+				evaluationDislike := r.FormValue("evaluationDislike")
+				evaluationLike := r.FormValue("evaluationLike")
 
-				if evaluation == "like" {
+				postID := r.FormValue("post_id")
+
+				if evaluationDislike == "" {
+
+					db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+					if dbInitErr != nil {
+						http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+						return
+					}
+
+					defer db.Close()
+
+					var exists bool
+					query := "SELECT EXISTS(SELECT 1 FROM postsdislikes WHERE post_id = ? AND user_id = ?)"
+					err = db.QueryRow(query, postID, userID).Scan(&exists)
+					if err != nil {
+						panic(err)
+					}
+
+					if exists {
+
+						fmt.Println("enleve le dislike")
+						_, err = db.Exec("DELETE FROM postsdislikes WHERE user_id = ? AND post_id = ?", userID, postID)
+						if err != nil {
+							log.Printf("Erreur de serveur: %v", err)
+							http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+							return
+						}
+
+						_, err = db.Exec("UPDATE posts SET posts_nbdislike = posts_nbdislike - 1 WHERE posts_id = ?", postID)
+						if err != nil {
+							log.Printf("Erreur de serveur: %v", err)
+							http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+							return
+						}
+
+					}
+
+				}
+				if evaluationLike == "" {
+
+					db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
+
+					if dbInitErr != nil {
+						http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
+						return
+					}
+					defer db.Close()
+
+					var exists bool
+					query := "SELECT EXISTS(SELECT 1 FROM postslikes WHERE post_id = ? AND user_id = ?)"
+					err = db.QueryRow(query, postID, userID).Scan(&exists)
+					if err != nil {
+						panic(err)
+					}
+
+					if exists {
+						fmt.Println("enleve like")
+
+						_, err = db.Exec("DELETE FROM postslikes WHERE user_id = ? AND post_id = ?", userID, postID)
+						if err != nil {
+							log.Printf("Erreur de serveur: %v", err)
+							http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+							return
+						}
+						_, err = db.Exec("UPDATE posts SET posts_nblike = posts_nblike - 1 WHERE posts_id = ?", postID)
+						if err != nil {
+							log.Printf("Erreur de serveur: %v", err)
+							http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+							return
+						}
+
+					}
+
+				}
+
+				if evaluationLike == "like" {
+					fmt.Println("a liké")
 
 					db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
 					if dbInitErr != nil {
@@ -425,7 +501,8 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 					}
 
-				} else if evaluation == "dislike" {
+				} else if evaluationDislike == "dislike" {
+					fmt.Println("a disliké")
 
 					db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
 					if dbInitErr != nil {
@@ -470,56 +547,7 @@ func (u *User) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						}
 					}
 
-				} else if evaluation == "dropdislike" {
-
-					fmt.Println("enleve dislike")
-
-					db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
-
-					if dbInitErr != nil {
-						http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
-						return
-					}
-					defer db.Close()
-					_, err = db.Exec("DELETE FROM postsdislikes WHERE user_id = ? AND post_id = ?", userID, postID)
-					if err != nil {
-						log.Printf("Erreur de serveur: %v", err)
-						http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
-						return
-					}
-
-					_, err = db.Exec("UPDATE posts SET posts_nbdislike = posts_nbdislike - 1 WHERE posts_id = ?", postID)
-					if err != nil {
-						log.Printf("Erreur de serveur: %v", err)
-						http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
-						return
-					}
-
-				} else if evaluation == "droplike" {
-					fmt.Println("enleve like")
-
-					db, dbInitErr := sql.Open("sqlite3", "./forumv3.db")
-
-					if dbInitErr != nil {
-						http.Error(w, "Erreur de base de données", http.StatusInternalServerError)
-						return
-					}
-					defer db.Close()
-					_, err = db.Exec("DELETE FROM postslikes WHERE user_id = ? AND post_id = ?", userID, postID)
-					if err != nil {
-						log.Printf("Erreur de serveur: %v", err)
-						http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
-						return
-					}
-					_, err = db.Exec("UPDATE posts SET posts_nblike = posts_nblike - 1 WHERE posts_id = ?", postID)
-					if err != nil {
-						log.Printf("Erreur de serveur: %v", err)
-						http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
-						return
-					}
-
 				}
-
 			} else {
 				http.Error(w, "You are not connected", http.StatusInternalServerError)
 
@@ -909,12 +937,6 @@ func (u *User) postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Charger l'utilisateur connecté
-	if err != nil {
-		http.Error(w, "Erreur lors de la récupération des informations de l'utilisateur", http.StatusInternalServerError)
-		return
-	}
-
 	// Charger les détails du post depuis la base de données
 	var post Post
 	db, err := sql.Open("sqlite3", "./forumv3.db")
@@ -923,8 +945,7 @@ func (u *User) postHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer db.Close()
-
-	err = db.QueryRow("SELECT posts_title, posts_description, posts_profile_picture, category_name FROM posts WHERE posts_id=?", id).Scan(&post.Title, &post.Description, &post.Base64Image, &post.CategoryName)
+	err = db.QueryRow("SELECT posts_title, posts_description, posts_profile_picture, category_name, posts_nblike, posts_nbdislike FROM posts WHERE posts_id=?", id).Scan(&post.Title, &post.Description, &post.Base64Image, &post.CategoryName, &post.Nblike, &post.Nbdislike)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			http.Error(w, "Aucun post trouvé avec cet ID", http.StatusNotFound)
@@ -937,6 +958,47 @@ func (u *User) postHandler(w http.ResponseWriter, r *http.Request) {
 	post.ID = id
 	post.Comments = getComments(w, r, id)
 
+	session, err := store.Get(r, "userSession")
+	if err != nil {
+		log.Printf("Erreur lors de la récupération de la session: %v", err)
+		http.Error(w, "Erreur de session", http.StatusInternalServerError)
+		return
+	}
+
+	userID, ok := session.Values["userID"].(int)
+	if !ok {
+		post.Liked = false
+		post.Disliked = false
+	} else {
+		var exists bool
+
+		// Query to check if a row with id = 1 exists
+		query := "SELECT EXISTS(SELECT 1 FROM postslikes WHERE post_id = ? AND user_id = ?)"
+		err = db.QueryRow(query, post.ID, userID).Scan(&exists)
+		if err != nil {
+			panic(err)
+		}
+
+		if exists {
+			post.Liked = true
+		} else {
+			post.Liked = false
+		}
+
+		query = "SELECT EXISTS(SELECT 1 FROM postsdislikes WHERE post_id = ? AND user_id = ?)"
+		err = db.QueryRow(query, post.ID, userID).Scan(&exists)
+		if err != nil {
+			panic(err)
+		}
+
+		if exists {
+			post.Disliked = true
+		} else {
+			post.Disliked = false
+		}
+
+	}
+
 	// Préparer les données à envoyer au template
 	tmpl, err := template.ParseFiles("uniquePost.html")
 	if err != nil {
@@ -948,23 +1010,35 @@ func (u *User) postHandler(w http.ResponseWriter, r *http.Request) {
 	var idUSER int
 	idUSER, err = getUserIdFromRequest(r)
 	if err != nil {
-		http.Error(w, "Erreur : utilisateur non connecté", http.StatusUnauthorized)
+
+		data := struct {
+			Post    Post
+			IsAdmin bool
+		}{
+			Post:    post,
+			IsAdmin: false,
+		}
+
+		// Exécuter le template avec les données
+		tmpl.Execute(w, data)
 		return
+	} else {
+		// Load the current user from the database
+		u.loadUserFromDB(idUSER)
+
+		data := struct {
+			Post    Post
+			IsAdmin bool
+		}{
+			Post:    post,
+			IsAdmin: u.Role == "admin" || u.Role == "moderator",
+		}
+
+		// Exécuter le template avec les données
+		tmpl.Execute(w, data)
+
 	}
 
-	// Load the current user from the database
-	u.loadUserFromDB(idUSER)
-
-	data := struct {
-		Post    Post
-		IsAdmin bool
-	}{
-		Post:    post,
-		IsAdmin: u.Role == "admin" || u.Role == "moderator",
-	}
-
-	// Exécuter le template avec les données
-	tmpl.Execute(w, data)
 }
 func categoryHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
@@ -1506,10 +1580,6 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID, ok := session.Values["userID"].(int)
-	if !ok {
-		http.Error(w, "You are not connected", http.StatusInternalServerError)
-		return
-	}
 
 	var posts []Post
 	var categories []Category
@@ -1607,33 +1677,39 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
 			return
 		}
+		if ok {
+			var exists bool
 
-		var exists bool
+			// Query to check if a row with id = 1 exists
+			query := "SELECT EXISTS(SELECT 1 FROM postslikes WHERE post_id = ? AND user_id = ?)"
+			err = db.QueryRow(query, post.ID, userID).Scan(&exists)
+			if err != nil {
+				panic(err)
+			}
 
-		// Query to check if a row with id = 1 exists
-		query := "SELECT EXISTS(SELECT 1 FROM postslikes WHERE post_id = ? AND user_id = ?)"
-		err = db.QueryRow(query, post.ID, userID).Scan(&exists)
-		if err != nil {
-			panic(err)
-		}
+			if exists {
+				post.Liked = true
+			} else {
+				post.Liked = false
+			}
 
-		if exists {
-			post.Liked = true
+			query = "SELECT EXISTS(SELECT 1 FROM postsdislikes WHERE post_id = ? AND user_id = ?)"
+			err = db.QueryRow(query, post.ID, userID).Scan(&exists)
+			if err != nil {
+				panic(err)
+			}
+
+			if exists {
+				post.Disliked = true
+			} else {
+				post.Disliked = false
+			}
+
 		} else {
+			post.Disliked = false
 			post.Liked = false
 		}
 
-		query = "SELECT EXISTS(SELECT 1 FROM postsdislikes WHERE post_id = ? AND user_id = ?)"
-		err = db.QueryRow(query, post.ID, userID).Scan(&exists)
-		if err != nil {
-			panic(err)
-		}
-
-		if exists {
-			post.Disliked = true
-		} else {
-			post.Disliked = false
-		}
 		posts = append(posts, post)
 	}
 
