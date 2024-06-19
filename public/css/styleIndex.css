@@ -159,15 +159,15 @@
 
 /* Background images for slides */
 #slide-1 {
-    background-image: url("imgS1.png");
+    background-image: url("../imgS1.png");
 }
 
 #slide-2 {
-    background-image: url("imgS2.png");
+    background-image: url("../imgS2.png");
 }
 
 #slide-3 {
-    background-image: url("imgS3.png");
+    background-image: url("../imgS3.png");
 }
 
 /* Titre */

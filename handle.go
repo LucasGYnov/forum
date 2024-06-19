@@ -9,14 +9,10 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"net"
 	"net/http"
-	"net/mail"
-	"net/smtp"
 	"net/url"
 	"path"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -2011,7 +2007,6 @@ func main() {
 	http.HandleFunc("/view-reports", viewReportsHandler)
 	http.HandleFunc("/delete-post", deletePostHandler)
 	http.HandleFunc("/ignore-report", ignoreReportHandler)
-	http.HandleFunc("/send-email", sendEmailHandler)
 
 	log.Fatal(http.ListenAndServe(":5500", nil))
 }
@@ -2209,91 +2204,4 @@ func ignoreReportHandler(w http.ResponseWriter, r *http.Request) {
 	reportsLock.Unlock()
 
 	http.Redirect(w, r, "/view-reports", http.StatusSeeOther)
-}
-
-func sendEmailHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
-		return
-	}
-
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Erreur lors de l'analyse du formulaire", http.StatusInternalServerError)
-		return
-	}
-
-	email := r.Form.Get("email")
-	subject := r.Form.Get("subject")
-	message := r.Form.Get("message")
-
-	if email == "" || subject == "" || message == "" {
-		http.Error(w, "Tous les champs sont obligatoires", http.StatusBadRequest)
-		return
-	}
-
-	smtpHost := "smtp.gmail.com"
-	smtpPort := 587
-
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", smtpHost, smtpPort))
-	if err != nil {
-		http.Error(w, "Impossible de se connecter au serveur de messagerie", http.StatusInternalServerError)
-		return
-	}
-	defer conn.Close()
-
-	client, err := smtp.NewClient(conn, smtpHost)
-	if err != nil {
-		http.Error(w, "Erreur lors de l'établissement de la connexion SMTP", http.StatusInternalServerError)
-		return
-	}
-	defer client.Quit()
-
-	auth := smtp.PlainAuth("", "lgsketo@gmail.com", "your-password", smtpHost)
-
-	if err := client.Auth(auth); err != nil {
-		http.Error(w, "Erreur d'authentification SMTP", http.StatusInternalServerError)
-		return
-	}
-
-	from := mail.Address{Name: "", Address: "lgsketo@gmail.com"}
-	to := mail.Address{Name: "", Address: "recipient@example.com"}
-
-	headers := make(map[string]string)
-	headers["From"] = from.String()
-	headers["To"] = to.String()
-	headers["Subject"] = subject
-	headers["Content-Type"] = "text/plain; charset=UTF-8"
-
-	var msg strings.Builder
-	for k, v := range headers {
-		msg.WriteString(fmt.Sprintf("%s: %s\r\n", k, v))
-	}
-	msg.WriteString("\r\n")
-	msg.WriteString(message)
-
-	// Envoi de l'email
-	if err := client.Mail(from.Address); err != nil {
-		http.Error(w, "Erreur lors de l'envoi de l'adresse expéditrice", http.StatusInternalServerError)
-		return
-	}
-	if err := client.Rcpt(to.Address); err != nil {
-		http.Error(w, "Erreur lors de l'envoi de l'adresse destinataire", http.StatusInternalServerError)
-		return
-	}
-
-	wc, err := client.Data()
-	if err != nil {
-		http.Error(w, "Erreur lors de l'ouverture du corps du message", http.StatusInternalServerError)
-		return
-	}
-	defer wc.Close()
-
-	_, err = fmt.Fprintf(wc, msg.String())
-	if err != nil {
-		http.Error(w, "Erreur lors de l'écriture du message", http.StatusInternalServerError)
-		return
-	}
-
-	fmt.Fprintln(w, "Email envoyé avec succès!")
 }
