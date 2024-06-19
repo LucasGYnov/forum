@@ -1552,6 +1552,7 @@ func (u *User) viewProfileHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
 			return
 		}
+
 		posts = append(posts, post)
 	}
 
@@ -1695,11 +1696,6 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID, ok := session.Values["userID"].(int)
-	if !ok {
-		log.Println("Error: userID not found in session")
-		http.Error(w, "Session error", http.StatusInternalServerError)
-		return
-	}
 
 	var posts []Post
 	var categories []Category
@@ -1800,28 +1796,39 @@ func (u *User) Feed(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Server error", http.StatusInternalServerError)
 			return
 		}
+		if ok {
+			var exists bool
 
-		// Check if the user has liked or disliked this post
-		var exists bool
-		query := "SELECT EXISTS(SELECT 1 FROM postslikes WHERE post_id = ? AND user_id = ?)"
-		err = db.QueryRow(query, post.ID, userID).Scan(&exists)
-		if err != nil {
-			log.Printf("Server error: %v", err)
-			http.Error(w, "Server error", http.StatusInternalServerError)
-			return
+			// Query to check if a row with id = 1 exists
+			query := "SELECT EXISTS(SELECT 1 FROM postslikes WHERE post_id = ? AND user_id = ?)"
+			err = db.QueryRow(query, post.ID, userID).Scan(&exists)
+			if err != nil {
+				panic(err)
+			}
+
+			if exists {
+				post.Liked = true
+			} else {
+				post.Liked = false
+			}
+
+			query = "SELECT EXISTS(SELECT 1 FROM postsdislikes WHERE post_id = ? AND user_id = ?)"
+			err = db.QueryRow(query, post.ID, userID).Scan(&exists)
+			if err != nil {
+				panic(err)
+			}
+
+			if exists {
+				post.Disliked = true
+			} else {
+				post.Disliked = false
+			}
+
+		} else {
+			post.Disliked = false
+			post.Liked = false
 		}
-		post.Liked = exists
 
-		query = "SELECT EXISTS(SELECT 1 FROM postsdislikes WHERE post_id = ? AND user_id = ?)"
-		err = db.QueryRow(query, post.ID, userID).Scan(&exists)
-		if err != nil {
-			log.Printf("Server error: %v", err)
-			http.Error(w, "Server error", http.StatusInternalServerError)
-			return
-		}
-		post.Disliked = exists
-
-		// Append the processed post to the posts slice
 		posts = append(posts, post)
 	}
 
