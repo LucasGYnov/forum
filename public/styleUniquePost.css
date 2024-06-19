@@ -241,14 +241,8 @@
     --col-dislike: #ff3232;
     --transition: 350ms;
     background-color: var(--col-gray);
-    width: 130px;
-    height: 50px;
-    border-radius: 50px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 9px;
-    user-select: none;
+
+    display: inline;
     /*you can easlly change the number by using this variabels*/
     --zero: translateY(calc(50% - 11px));
     --one: translateY(calc(40% - 11px));
@@ -262,7 +256,16 @@
     --nine: translateY(calc(-40% - 11px));
     --ten: translateY(calc(-50% - 11px));
   }
-  
+
+  .likeAndNum{
+    /* border: red 1px solid; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+
+  }
+
   .container label input {
     display: none;
   }
@@ -298,9 +301,9 @@
     margin: auto;
     color: rgb(0, 0, 0);
     font-family: sans-serif;
-    display: flex;
+   /*  display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: center; */
     gap: 0.5px;
     flex-direction: row;
   }
