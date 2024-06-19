@@ -2110,7 +2110,7 @@ func submitReportHandler(w http.ResponseWriter, r *http.Request) {
 	reports = append(reports, report)
 	reportsLock.Unlock()
 
-	http.Redirect(w, r, "/view-reports", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 // Fonction pour extraire l'ID du post de l'URL
@@ -2130,16 +2130,6 @@ func extractPostIDFromURL(postURL string) (int, error) {
 }
 
 func viewReportsHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("viewReports.html")
-	if err != nil {
-		log.Printf("Erreur lors de l'analyse du template: %v", err)
-		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
-		return
-	}
-
-	reportsLock.Lock()
-	defer reportsLock.Unlock()
-
 	// Récupérer l'ID de l'utilisateur depuis le cookie
 	idUSER, err := getUserIdFromRequest(r)
 	if err != nil {
@@ -2155,6 +2145,20 @@ func viewReportsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Erreur lors de la récupération des informations de l'utilisateur", http.StatusInternalServerError)
 		return
 	}
+
+	if currentUser.Role != "admin" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	}
+
+	tmpl, err := template.ParseFiles("viewReports.html")
+	if err != nil {
+		log.Printf("Erreur lors de l'analyse du template: %v", err)
+		http.Error(w, "Erreur de serveur", http.StatusInternalServerError)
+		return
+	}
+
+	reportsLock.Lock()
+	defer reportsLock.Unlock()
 
 	// Préparer les données à envoyer au template
 	type TemplateData struct {
