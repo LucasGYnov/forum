@@ -81,10 +81,10 @@ a {
 }
 
 #container-img {
-    position: absolute;
+    position:absolute;
     top: 0;
     right: 0;
-    width: 100vw;
+    width: 100%;
     height: 125vh;
     background: linear-gradient(to bottom, rgba(250, 250, 250, 0.05) 0%, rgba(250, 250, 250, 1) 95%);
     pointer-events: none;
@@ -412,6 +412,7 @@ a {
     border: 1px solid #888;
     width: 80%;
     max-width: 800px;
+    z-index: 1000;
 }
 
 #filters-modal .modal-content {

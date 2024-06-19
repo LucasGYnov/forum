@@ -1,5 +1,6 @@
 /* Titre */
 .title {
+    position: relative;
     display: flex;
     color: var(--lightText-color);
     justify-content: start;
@@ -19,6 +20,7 @@
 
 /* Carte */
 .card {
+    position: relative;
     display: flex;
     border: 1px solid #ccc;
 /*     background-color: var(--PrimarylightBGColor);
@@ -35,7 +37,7 @@
     width: 100px;
     height: auto;
     flex-shrink: 0;
-    z-index :10000
+    /* z-index :10000 */
 
 }
 
@@ -46,13 +48,15 @@
 }
 
 .card-content {
+    position: relative;
     padding: 15px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    z-index :10000;
-    flex-grow: 1; /* Fait en sorte que .card-content utilise tout l'espace disponible */
+    /* z-index :10; */
+    flex-grow: 1; 
     overflow: hidden;
+
 
 }
 
@@ -110,23 +114,28 @@
 
 .carousel-container {
     display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
     transition: transform 0.5s ease-in-out;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 /* Carte de sujet */
 .card-topic {
     position: relative;
+    flex: 0 0 auto;
+    width: 17.5vw;
+    margin: 0 10px;
     display: flex;
     flex-direction: row;
     background: #fff;
     border: 1px solid #ddd;
     border-radius: 10px;
-    margin: .5rem;
-    width: 20%;
-    height: 15rem;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     transition: transform 0.3s;
+    height: 15rem;
 }
 
 .like-button-container {
@@ -144,7 +153,7 @@
 }
 .like-form{
     position: relative;
-    z-index: 10; 
+    /* z-index: 10;  */
     width: 40px;
     height: 40px;
     
@@ -156,7 +165,7 @@
     border: none;
     cursor: pointer;
     outline: none;
-    z-index: 10; 
+    /* z-index: 10;  */
 
 
 }
@@ -168,8 +177,6 @@
     background: url(likeButton2.png) no-repeat;
     background-size: 2900%;
     transform: scale(2);
-    z-index: 10;
-
 }
 
 .heart.heart-active{
@@ -297,7 +304,7 @@
     border: none;
     padding: 10px 15px;
     cursor: pointer;
-    z-index: 10;
+    /* z-index: 10; */
     border-radius: 50%;
     transition: background 0.3s;
 }
@@ -316,6 +323,7 @@
 }
 
 .all-categories {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;

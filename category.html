@@ -85,39 +85,6 @@
      </button>
      <!-- Section principale -->
      <main>
-        <p class="title">Catégories likées :</p>
-<div class="carousel">
-    <div class="carousel-container">
-      {{range .CategoriesLiked}}
-        <div class="card-topic">
-         <img src ="data:image/jpeg;base64,{{.Base64Image}}" alt="Theme Image">
-            <div class="card-content">
-               <h5>{{.Title}}</h5>
-               <p>{{.NbPost}} post(s)</p>
-               <p>45 favoris</p>
-           </div>
-                  
-            <form action="/like" method="POST" target="invisible-frame" class="like-form">
-                     <input type="hidden" name="category_id" value={{.ID}}> <!-- Remplacer par l'ID de la catégorie -->
-                     <input type="hidden" name="isLiked"  value="false">
-                     <button type="submit" class="like-button" data-liked="false">
-                         <div class="heart"></div>
-                     </button>
-            </form>
-
-           
-        </div>
-        {{end}}
-        
-    <button class="prev">⟨</button>
-    <button class="next">⟩</button>
-</div>
-<a href="http://localhost:5500/categories">
-    <button class="all-categories">
-                Voir toutes les catégories</a>
-    </button>
-</a>
-
         <p class = "title">Toutes les catégories:</p>
         <!-- Card Group -->
         <div class="card-group">

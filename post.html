@@ -85,7 +85,7 @@
      </button>
      <!-- Section principale -->
      <main>
-        <p class="title">Catégories likées :</p>
+        <p class="title">Catégories connues</p>
 <div class="carousel">
     <div class="carousel-container">
       {{range .Categories}}
@@ -109,9 +109,9 @@
         </div>
         {{end}}
         
-    <button class="prev">⟨</button>
-    <button class="next">⟩</button>
 </div>
+</div>
+
 <a href="http://localhost:5500/categories">
     <button class="all-categories">
                 Voir toutes les catégories</a>
@@ -497,6 +497,21 @@
          }
  
      </script>
+     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const carousel = document.querySelector('.carousel-container');
+            const prevButton = document.querySelector('.prev');
+            const nextButton = document.querySelector('.next');
+    
+            prevButton.addEventListener('click', function () {
+                carousel.scrollBy({ left: -carousel.clientWidth, behavior: 'smooth' });
+            });
+    
+            nextButton.addEventListener('click', function () {
+                carousel.scrollBy({ left: carousel.clientWidth, behavior: 'smooth' });
+            });
+        });
+    </script>
       <iframe name="invisible-frame" style="display:none;"></iframe>
   </body>
 </html>

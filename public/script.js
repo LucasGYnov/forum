@@ -74,3 +74,5 @@ nextButton.addEventListener('click', () => {
     carouselContainer.style.transform = `translateX(-${offset}px)`;
 });
 
+
+
