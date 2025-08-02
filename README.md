@@ -1,4 +1,4 @@
-<img width="1859" height="935" alt="image" src="https://github.com/user-attachments/assets/623cc7fc-7e95-423e-a454-9d35aaaa32e9" /># 🌸 Anime Forum
+# 🌸 Anime Forum
 
 **Baka Land** est un site web complet permettant aux fans d'anime de créer des discussions, de partager leurs avis et d’interagir via des likes et dislikes, dans un esprit proche de Reddit.
 
